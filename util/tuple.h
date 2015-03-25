@@ -8,7 +8,9 @@ struct Tuple {
   unsigned document;
   unsigned frequency;
   unsigned position;
-
+  unsigned tuple_file;
+  unsigned tuple_file_position;
+  
   static const bool LessThen(const Tuple& a, const Tuple& b) const;
 };
 
