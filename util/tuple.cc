@@ -1,5 +1,7 @@
 #include "tuple.h"
 
+namespace util {
+
 // Returns true iff |a| is strictly smaller then |b|.
 const bool Tuple::LessThen(const Tuple& a, const Tuple& b) const {
   if (a.term < b.term) {
@@ -25,3 +27,5 @@ const bool Tuple::LessThen(const Tuple& a, const Tuple& b) const {
   // |a| is not strictly smaller then |b|.
   return false;
 }
+
+} // namespace util
