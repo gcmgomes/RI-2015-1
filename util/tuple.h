@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+namespace util {
+
 struct Tuple {
   unsigned term;
   unsigned document;
@@ -15,3 +17,5 @@ struct Tuple {
 };
 
 #endif
+
+} // namespace util
