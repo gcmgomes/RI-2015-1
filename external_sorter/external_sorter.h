@@ -16,8 +16,9 @@ class ExternalSorter {
 
   ~ExternalSorter();
   
+  void MultiwayMerge();
+  
  private:
-
   // Manager for file operations.
   util::FileManager* file_manager_;
   
@@ -26,4 +27,5 @@ class ExternalSorter {
 };
 
 } // namespace sorting
+
 #endif
