@@ -53,7 +53,7 @@ void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tupl
   while(i) {
     Tuple* tuple = this->GetNextTuple(file_id, 0);
     if(tuple != nullptr) {
-      heap->push_back(*tuple);
+      heap->push(*tuple);
       delete tuple;
     }
     i--;
