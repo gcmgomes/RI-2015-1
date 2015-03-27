@@ -16,10 +16,10 @@ class FileManager {
     
     ~FileManager();
     
-    // Get next tuple from the file |file_prefix_| + |tuple_file_id| at the position
-    // |tuple_id|. Returns nullptr if EOF has already been reached, otherwise the caller
+    // Get next tuple based on |tuple|'s meta-information.
+    // Returns nullptr if EOF has already been reached, otherwise the caller
     // takes ownership of the returned object.
-    Tuple* GetNextTuple(unsigned tuple_file_id, unsigned tuple_id);
+    Tuple* GetNextTuple(const Tuple* tuple);
     
     // Performs output operations for the necessary Tuple fields to |output_file_|.
     void OutputTuple(Tuple* tuple);
