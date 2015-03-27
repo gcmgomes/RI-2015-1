@@ -50,13 +50,13 @@ void OutputTuple(Tuple* tuple) {
 
 void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap) {
   unsigned file_id = file_count_-1;
-  while(i) {
+  while(file_id) {
     Tuple* tuple = this->GetNextTuple(file_id, 0);
-    if(tuple != nullptr) {
+    if(tuple != NULL) {
       heap->push(*tuple);
       delete tuple;
     }
-    i--;
+    file_id--;
   }
 }
 
