@@ -1,26 +1,33 @@
-#ifndef _RI_2015_1_EXTERNAL_SORTER_EXTERNAL_SORTER_H_
-#define _RI_2015_1_EXTERNAL_SORTER_EXTERNAL_SORTER_H_
-
-#include <iostream>
-#include <priority_queue>
-#include <vector>
 #include "../util/tuple.h"
 
-class ExternalSorter {
- public:
-  ExternalSorter(unsigned max_tuple_buffer_size, unsigned max_heap_size);
+namespace sorting {
 
-  ~ExternalSorter();
- private:
-  // Maximum number of tuples to be stored in memory before being flushed.
-  unsigned max_tuple_buffer_size_;
-  // Array of tuples to be flushed when max_tuple_buffer_size_ is reached.
-  std::vector<Touple> tuple_buffer_;
+ExternalSorter::ExternalSorter(util::FileManager* file_manager) {
+ file_manager_ = file_manager;
+}
 
-  // Maximum number of tuples contained that sorting_heap_ can hold.
-  unsigned max_heap_size_;
-  // Heap of Tuples that will be sorted.
-  std::priority_queue<Tuple, std::vector<Tuple>, &Tuple::LessThen> heap_;
-};
+~ExternalSorter() {
+ if(file_manager_ != NULL;) {
+  delete file_manager_;
+ }
+}
 
-#endif
+void ExternalSorting::MultiwayMerge() {
+ heap_.clear();
+ file_manager_->InitializeHeap(&(this->heap_));
+ util::Tuple* tuple = NULL;
+ 
+ while(heap_.empty() == false) {
+  tuple = &(heap_.top());
+  file_manager_->OutputTuple(tuple);
+  
+  tuple = file_manager_->GetNextTuple(tuple);
+  heap_.pop();
+  
+  if(tuple != NULL) {
+   heap_.push(*tuple);
+  }
+ }
+}
+
+} // namespace sorting
