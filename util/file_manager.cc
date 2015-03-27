@@ -15,32 +15,32 @@ FileManager::~FileManager() {
   output_file_.close();
 }
 
-Tuple* FileManager::GetNextTuple(unsigned tuple_file_id, unsigned tuple_id) {
-  if(tuple_file_id != input_file_id_) {
-    input_file_id_ = tuple_file_id;
+Tuple* FileManager::GetNextTuple(const Tuple* tuple) {
+  if(tuple.tuple_file_id != input_file_id_) {
+    input_file_id_ = tuple.tuple_file_id;
     input_file_.close();
     
     char file_id[16];
-    sprintf(file_id, "%u", tuple_file_id);
+    sprintf(file_id, "%u", tuple.tuple_file_id);
     
     const std::string file_path = file_prefix_ + file_id;
     input_file_.open(file_path.c_str(), std::ifstream::binary);
     
     // Each tuple is written as 4 unsigned (4 bytes each) values.
     // Therefore, the n-th tuple starts at the (4*4*n)-byte.
-    input_file_.seekg(4*4*tuple_id);
+    input_file_.seekg(4*4*tuple.tuple_id);
   }
   
   if(ifstream.eof() || ifstream.peek() == EOF) {
     return nullptr;
   }
   
-  Tuple* tuple = new Tuple();
-  input_file_.read((char*) *tuple, 4*sizeof(unsigned));
-  tuple.tuple_file_id = input_file_id_;
-  tuple.next_tuple_id = tuple_id+1;
+  Tuple* new_tuple = new Tuple();
+  input_file_.read((char*) *new_tuple, 4*sizeof(unsigned));
+  new_tuple.tuple_file_id = tuple.input_file_id_;
+  new_tuple.next_tuple_id = tuple.tuple_id+1;
   
-  return tuple;
+  return new_tuple;
 }
 
 void OutputTuple(Tuple* tuple) {
