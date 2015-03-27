@@ -14,6 +14,8 @@ class FileManager {
   public:
     FileManager(unsigned file_count, std::string file_prefix, std::string output_file_path);
     
+    ~FileManager();
+    
     // Get next tuple from the file |file_prefix_| + |tuple_file_id| at the position
     // |tuple_id|. Returns nullptr if EOF has already been reached, otherwise the caller
     // takes ownership of the returned object.
