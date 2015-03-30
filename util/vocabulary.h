@@ -18,8 +18,11 @@ class Vocabulary {
     // Returns true if |s| is in the vocabulary, false otherwise.
     bool Check(const std::string& s);
   
-    // Writes the vocabulary to |file_path| using blocks with |block_size| strings each.
-    void EntryBlockingDump(const std::string& file_path, unsigned block_size);
+    // Writes the vocabulary to |file_path|.
+    void Dump(const std::string& file_path);
+    
+    // Recovers files written to |file_path| with Dump it's internal representation.
+    void Recover(const std::string& file_path);
     
   private:
     // Hash table. May change later on.
