@@ -16,21 +16,20 @@ class FileManager {
     
     ~FileManager();
     
-    // Get next tuple based on |tuple|'s meta-information.
-    // Returns nullptr if EOF has already been reached, otherwise the caller
+    // Get next tuple based on |file_id|.
+    // Returns NULL if EOF has already been reached, otherwise the caller
     // takes ownership of the returned object.
-    Tuple* GetNextTuple(const Tuple* tuple);
+    Tuple* GetNextTuple(unsigned file_id);
     
     // Performs output operations for the necessary Tuple fields to |output_file_|.
     void OutputTuple(Tuple* tuple);
     
-    // Initializes |heap| with exactly 1 Tuple from each one of the |file_count_| files.
+    // Initializes |heap| with exactly 1 Tuple from each one of the input files.
     void InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap);
     
   private:
-    unsigned file_count_;
     std::string file_prefix_;
-    std::ifstream input_file_;
+    std::vector<std::ifstream*> input_files_;
     std::ofstream output_file_;
 };
 
