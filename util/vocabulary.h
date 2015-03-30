@@ -7,7 +7,7 @@
 
 class Vocabulary {
   public:
-    Vocabulary();
+    Vocabulary() {};
     
     // Reads a list of strings and formats it to the underlying representation.
     void Init(const std::vector<std::string>* strings);
