@@ -11,7 +11,6 @@ struct Tuple {
   unsigned frequency;
   unsigned position;
   unsigned tuple_file_id;
-  unsigned next_tuple_id;
   
   static const bool LessThen(const Tuple& a, const Tuple& b) const;
 };
