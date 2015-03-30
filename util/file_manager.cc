@@ -5,58 +5,63 @@
 namespace util {
 
 FileManager::FileManager(unsigned file_count, std::string file_prefix, std::string output_file_path) {
-  file_count_ = file_count;
   file_prefix_ = file_prefix;
+  input_files_.assign(file_count, NULL));
   output_file_.open(output_file_path.c_str(), std::ofstream::binary);
 }
 
 FileManager::~FileManager() {
-  input_file_.close();
+  unsigned i = 0;
+  while(i < input_files_.size()) {
+    if(input_files_[i] != NULL) {
+      delete input_files_[i];
+    }
+    i++;
+  }
   output_file_.close();
 }
 
-Tuple* FileManager::GetNextTuple(const Tuple* tuple) {
-  if(tuple.tuple_file_id != input_file_id_) {
-    input_file_id_ = tuple.tuple_file_id;
-    input_file_.close();
+Tuple* FileManager::GetNextTuple(unsigned file_id) {
+  // Lazy input file initialization.
+  if(input_files_[file_id] == NULL) {
+    char file_suffix[16];
+    sprintf(file_suffix, "%u", file_id);
     
-    char file_id[16];
-    sprintf(file_id, "%u", tuple.tuple_file_id);
-    
-    const std::string file_path = file_prefix_ + file_id;
-    input_file_.open(file_path.c_str(), std::ifstream::binary);
-    
-    // Each tuple is written as 4 unsigned (4 bytes each) values.
-    // Therefore, the n-th tuple starts at the (4*4*n)-byte.
-    input_file_.seekg(4*4*tuple.tuple_id);
+    const std::string file_path = file_prefix_ + file_sufix;
+    input_files_[file_id] = new std::ifstream();
+    input_files_[file_id]->open(file_path.c_str(), std::ifstream::binary);
   }
   
-  if(ifstream.eof() || ifstream.peek() == EOF) {
-    return nullptr;
+  if(!input_files_[file_id].is_open()) {
+    return NULL;
   }
   
   Tuple* new_tuple = new Tuple();
-  input_file_.read((char*) *new_tuple, 4*sizeof(unsigned));
-  new_tuple.tuple_file_id = tuple.input_file_id_;
-  new_tuple.next_tuple_id = tuple.tuple_id+1;
+  input_files_[file_id]->read((char*) *new_tuple, 4*sizeof(unsigned));
+  new_tuple.tuple_file_id = file_id;
+  
+  // Check if file is done and close it.
+  if(input_files_[file_id]->peek() == EOF || input_files[file_id]->eof()) {
+    input_files_[file_id]->close().
+  }
   
   return new_tuple;
 }
 
-void OutputTuple(Tuple* tuple) {
+void FileManager::OutputTuple(Tuple* tuple) {
   // Writes the first 4 unsigned fields of |tuple| to |output_file_|.
   output_file_.write((char*) *tuple,  4*sizeof(unsigned))
 }
 
 void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap) {
-  unsigned file_id = file_count_-1;
-  while(file_id) {
-    Tuple* tuple = this->GetNextTuple(file_id, 0);
+  unsigned file_id = 0;
+  while(this->input_files_.size()) {
+    Tuple* tuple = this->GetNextTuple(file_id);
     if(tuple != NULL) {
       heap->push(*tuple);
       delete tuple;
     }
-    file_id--;
+    file_id++;
   }
 }
 
