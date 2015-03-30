@@ -25,6 +25,6 @@ class Vocabulary {
     void Load(const std::string& file_path);
     
   private:
-    std::unordered_map<string, int> vocabulary_;
+    std::unordered_map<string, unsigned> vocabulary_;
 }
 #endif
