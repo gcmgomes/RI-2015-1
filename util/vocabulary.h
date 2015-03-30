@@ -10,7 +10,7 @@ class Vocabulary {
     Vocabulary() {};
     
     // Reads a list of strings and formats it to the underlying representation.
-    void Init(const std::vector<std::string>* strings);
+    void Init(const std::vector<std::string>& strings);
 
     // Add a new term |s| to the vocabulary. Returns true if successful, false otherwise.
     bool Insert(const std::string& s);
