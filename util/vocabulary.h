@@ -1,6 +1,9 @@
+#ifndef _RI_2015_1_UTIL_VOCABULARY_H_
+#define _RI_2015_1_UTIL_VOCABULARY_H_
+
 #include<string>
 #include<vector>
-#include<tr1/unordered_map>
+#include<unordered_map>
 
 class Vocabulary {
   public:
@@ -10,15 +13,16 @@ class Vocabulary {
     void Init(const std::vector<std::string>* strings);
 
     // Add a new term |s| to the vocabulary. Returns true if successful, false otherwise.
-    bool Insert(std::string s);
+    bool Insert(const std::string& s);
     
     // Returns true if |s| is in the vocabulary, false otherwise.
-    bool Check(std::string s);
+    bool Check(const std::string& s);
   
     // Writes the vocabulary to |file_path| using blocks with |block_size| strings each.
-    void EntryBlockingDump(std::string file_path, unsigned block_size);
+    void EntryBlockingDump(const std::string& file_path, unsigned block_size);
     
   private:
     // Hash table. May change later on.
-    std::tr1::unordered_map<string, int> vocabulary_;
+    std::unordered_map<string, int> vocabulary_;
 }
+#endif
