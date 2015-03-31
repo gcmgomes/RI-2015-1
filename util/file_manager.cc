@@ -37,7 +37,7 @@ Tuple* FileManager::GetNextTuple(unsigned file_id) {
   }
   
   Tuple* new_tuple = new Tuple();
-  input_files_[file_id]->read((char*) *new_tuple, 4*sizeof(unsigned));
+  input_files_[file_id]->read(reinterprete_cast<const char*>(*new_tuple), 4*sizeof(unsigned));
   new_tuple.tuple_file_id = file_id;
   
   // Check if file is done and close it.
@@ -48,9 +48,28 @@ Tuple* FileManager::GetNextTuple(unsigned file_id) {
   return new_tuple;
 }
 
-void FileManager::OutputTuple(Tuple* tuple) {
-  // Writes the first 4 unsigned fields of |tuple| to |output_file_|.
-  output_file_.write((char*) *tuple,  4*sizeof(unsigned))
+void FileManager::CacheTupleToBuffer(Tuple* tuple) {
+  output_buffer.push_back(*tuple);
+}
+
+void FileManager::Flush() {
+  Tuple* tuple = &output_buffer_[0];
+  unsigned size = output_buffer_.size();
+  // Term id of the current buffer objects.
+  output_file_.write(reinterprete_cast<const char*>(&tuple->term),  sizeof(unsigned));
+  // Number of entries fo the current term.
+  output_file_.write(reinterprete_cast<const char*>(&size),  sizeof(unsigned));
+  unsigned i = 0;
+  while(i < size) {
+    tuple = &output_buffer_[i];
+    // Document id.
+    output_file_.write(reinterprete_cast<const char*>(&tuple->document),  sizeof(unsigned));
+    // Frequency on the current document.
+    output_file_.write(reinterprete_cast<const char*>(&tuple->frequency),  sizeof(unsigned));
+    // Position on the current document.
+    output_file_.write(reinterprete_cast<const char*>(&tuple->position),  sizeof(unsigned));
+    ++i;
+  }
 }
 
 void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap) {
