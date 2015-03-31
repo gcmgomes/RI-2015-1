@@ -5,6 +5,8 @@
 #include<vector>
 #include<unordered_map>
 
+namespace util {
+
 class Vocabulary {
   public:
     Vocabulary() {};
@@ -27,4 +29,6 @@ class Vocabulary {
   private:
     std::unordered_map<string, unsigned> vocabulary_;
 }
+
+} // namespace util
 #endif
