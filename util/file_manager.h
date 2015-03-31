@@ -21,8 +21,11 @@ class FileManager {
     // takes ownership of the returned object.
     Tuple* GetNextTuple(unsigned file_id);
     
-    // Performs output operations for the necessary Tuple fields to |output_file_|.
-    void OutputTuple(Tuple* tuple);
+    // Caches |tuple| to an auxiliary output buffer.
+    void CacheTupleToBuffer(Tuple* tuple);
+    
+    // Outputs the auxiliar buffer to |output_file_|. 
+    void Flush();
     
     // Initializes |heap| with exactly 1 Tuple from each one of the input files.
     void InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap);
