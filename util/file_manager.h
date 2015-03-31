@@ -30,7 +30,7 @@ class FileManager {
   private:
     std::string file_prefix_;
     std::vector<std::ifstream*> input_files_;
-    char* output_buffer_;
+    std::vector<Tuple> output_buffer_;
     std::ofstream output_file_;
 };
 
