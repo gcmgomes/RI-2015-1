@@ -7,7 +7,7 @@ ExternalSorter::ExternalSorter(util::FileManager* file_manager) {
 }
 
 ~ExternalSorter() {
- if(file_manager_ != NULL;) {
+ if(file_manager_ != NULL) {
   delete file_manager_;
  }
 }
@@ -15,19 +15,26 @@ ExternalSorter::ExternalSorter(util::FileManager* file_manager) {
 void ExternalSorting::MultiwayMerge() {
  heap_.clear();
  file_manager_->InitializeHeap(&(this->heap_));
- util::Tuple* tuple = NULL;
+ util::Tuple* tuple = heap_.top();
+ unsigned previous_term_id = tuple->term;
  
- while(heap_.empty() == false) {
+ while(!heap_.empty()) {
   tuple = &(heap_.top());
-  file_manager_->OutputTuple(tuple);
   
-  tuple = file_manager_->GetNextTuple(tuple);
+  if(tuple->term != previous_term_id) {
+   previous_term_id = tuple->term;
+   file_manager_->Flush();
+  }
+  
+  file_manager_->CacheTupleToBuffer(tuple);
+  tuple = file_manager_->GetNextTuple(tuple.tuple_file_id);
   heap_.pop();
   
   if(tuple != NULL) {
    heap_.push(*tuple);
   }
  }
+ file_manager_->Flush();
 }
 
 } // namespace sorting
