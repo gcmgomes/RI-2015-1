@@ -1,11 +1,12 @@
 #include "vocabulary.h"
 #include <fstream>
 
+namespace util {
+
 void Vocabulary::Init(const std::vector<std::string>& strings) {
   unsigned i = 0;
   while(i < strings.size()) {
-    vocabulary_[strings[i]] = i+1;
-    i++;
+    vocabulary_[strings[i]] = ++i;
   }
 }
 
@@ -49,3 +50,5 @@ void Vocabulary::Load(const std::string& file_path) {
     this->Insert(key);
   }
 }
+
+} // namespace util
