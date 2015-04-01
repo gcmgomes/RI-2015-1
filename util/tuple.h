@@ -12,7 +12,7 @@ struct Tuple {
   unsigned position;
   unsigned tuple_file_id;
   
-  static const bool LessThen(const Tuple& a, const Tuple& b) const;
+  static const bool LessThan(const Tuple& a, const Tuple& b) const;
 };
 
 #endif
