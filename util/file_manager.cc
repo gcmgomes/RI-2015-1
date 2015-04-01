@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cstdio>
+#include <algorithm>
 #include "file_manager.h"
 
 namespace util {
@@ -21,13 +22,33 @@ FileManager::~FileManager() {
   output_file_.close();
 }
 
+static Tuple* GetTuple(ifstream* input_file) {
+  Tuple* new_tuple = new Tuple();
+  input_file->read(reinterprete_cast<const char*>(*new_tuple), 4*sizeof(unsigned));
+  return new_tuple;
+}
+
+static void OutputTuples(const std::string& output_file_path, const std::vector<Tuple>& tuples) {
+  unsigned i = 0;
+  std::ofstream output_file;
+  output_file.open(output_file_path.c_str(), std::ofstream::binary);
+  while(i < tuples.size()) {
+    output_file_.write(reinterprete_cast<const char*>(&tuples[i]),  4*sizeof(unsigned));
+    i++;
+  }
+}
+
+static std::string AssembleFilePath(std::string file_path, unsigned file_id) {
+  char file_suffix[16];
+  sprintf(file_suffix, "%u", file_id);
+  file_path += file_id;
+  return file_path;
+}
+
 Tuple* FileManager::GetNextTuple(unsigned file_id) {
   // Lazy input file initialization.
   if(input_files_[file_id] == NULL) {
-    char file_suffix[16];
-    sprintf(file_suffix, "%u", file_id);
-    
-    const std::string file_path = file_prefix_ + file_sufix;
+    std::string file_path = AssembleFile_path(this->file_prefix_, file_id);
     input_files_[file_id] = new std::ifstream();
     input_files_[file_id]->open(file_path.c_str(), std::ifstream::binary);
   }
@@ -36,8 +57,7 @@ Tuple* FileManager::GetNextTuple(unsigned file_id) {
     return NULL;
   }
   
-  Tuple* new_tuple = new Tuple();
-  input_files_[file_id]->read(reinterprete_cast<const char*>(*new_tuple), 4*sizeof(unsigned));
+  Tuple* new_tuple = GetTuple(input_files_[file_id]);
   new_tuple.tuple_file_id = file_id;
   
   // Check if file is done and close it.
@@ -72,7 +92,7 @@ void FileManager::Flush() {
   }
 }
 
-void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap) {
+void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThan>* heap) {
   unsigned file_id = 0;
   while(this->input_files_.size()) {
     Tuple* tuple = this->GetNextTuple(file_id);
@@ -82,6 +102,36 @@ void FileManager::InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tupl
     }
     file_id++;
   }
+}
+
+void FileManager::Split(const std::string& file_path) {
+  unsigned long long tuple_count = 0;
+  unsigned file_id = 0;
+  std::ifstream tuple_file;
+  
+  // Determine the amount of tuples in the file pointed by |file_path|.
+  tuple_file.open(file_path.c_str(), std::ifstream::binary | std::ifstream::ate);
+  tuple_count = tuple_file.tellg() / 4;
+  tuple_file.close();
+
+  // Open |tuple_file| for effective input.
+  tuple_file.open(file_path.c_str(), std::ifstream::binary);
+  
+  while(tuple_count) {
+    unsigned tuple_block_size = this->input_files_.size();
+    std::vector<Tuple> tuples;
+    
+    while(tuple_block_size && tuple_count) {
+      tuple_block.push_back(*GetTuple(tuple_file));
+      tuple_block_size--;
+      tuple_count--;
+    }
+    
+    std::sort(tuples.begin(), tuples.end(), &Tuple::LessThan);
+    OutputTuples(AssembleFilePath(this->file_prefix_, ++file_id), tuples);
+  }
+  
+  tuple_file.close();
 }
 
 } // namespace util
