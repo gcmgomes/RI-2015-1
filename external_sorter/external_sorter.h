@@ -23,7 +23,7 @@ class ExternalSorter {
   util::FileManager* file_manager_;
   
   // Heap of Tuples that will be sorted.
-  std::priority_queue<util::Tuple, std::vector<util::Tuple>, &util::Tuple::LessThen> heap_;
+  std::priority_queue<util::Tuple, std::vector<util::Tuple>, &util::Tuple::LessThan> heap_;
 };
 
 } // namespace sorting
