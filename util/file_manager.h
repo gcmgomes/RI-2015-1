@@ -30,6 +30,9 @@ class FileManager {
     // Initializes |heap| with exactly 1 Tuple from each one of the input files.
     void InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap);
     
+    // Divides the file pointed by |file_path| into the needed smaler, partially sorted files.
+    void Split(const std::string& file_path);
+    
   private:
     std::string file_prefix_;
     std::vector<std::ifstream*> input_files_;
