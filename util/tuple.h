@@ -2,6 +2,7 @@
 #define _RI_2015_1_UTIL_TUPLE_H_
 
 #include <iostream>
+#include <string>
 
 namespace util {
 
@@ -11,10 +12,14 @@ struct Tuple {
   unsigned frequency;
   unsigned position;
   unsigned tuple_file_id;
-  
-  static const bool LessThan(const Tuple& a, const Tuple& b) const;
+
+  // Returns true iff |this| is strictly smaller then |b|.
+  bool operator<(const Tuple& b) const;
+  bool operator<(const Tuple& b);
+
+  std::string ToString();
 };
 
-#endif
+}  // namespace util
 
-} // namespace util
+#endif

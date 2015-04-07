@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <priority_queue>
+#include <queue>
 #include <vector>
 #include <string>
 #include "tuple.h"
@@ -12,6 +12,7 @@ namespace util {
 
 class FileManager {
   public:
+    // Input files are of the form |file_prefix|+[0, |file_count|).
     FileManager(unsigned file_count, std::string file_prefix, std::string output_file_path);
     
     ~FileManager();
@@ -23,12 +24,22 @@ class FileManager {
     
     // Caches |tuple| to an auxiliary output buffer.
     void CacheTupleToBuffer(Tuple* tuple);
+
+    //Writes |tuple| to |output_file_| without any special treatment.
+    void UnformattedWrite(Tuple* tuple);
     
     // Outputs the auxiliar buffer to |output_file_|. 
     void Flush();
+
+    // Close |output_file_|.
+    void CloseOutput() {
+      if (output_file_.is_open()) {
+        output_file_.close();
+      }
+    }
     
     // Initializes |heap| with exactly 1 Tuple from each one of the input files.
-    void InitializeHeap(std::priority_queue<Tuple, vector<Tuple>, &Tuple::LessThen>* heap);
+    void InitializeHeap(std::priority_queue<Tuple>* heap);
     
     // Divides the file pointed by |file_path| into the needed smaler, partially sorted files.
     void Split(const std::string& file_path);

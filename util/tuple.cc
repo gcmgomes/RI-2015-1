@@ -1,9 +1,12 @@
+#include <cstdio>
+#include <cstring>
+
 #include "tuple.h"
 
 namespace util {
 
-// Returns true iff |a| is strictly smaller then |b|.
-const bool Tuple::LessThan(const Tuple& a, const Tuple& b) const {
+bool Tuple::operator<(const Tuple& b) const {
+  const Tuple a = *this;
   if (a.term < b.term) {
     return true;
   }
@@ -28,4 +31,23 @@ const bool Tuple::LessThan(const Tuple& a, const Tuple& b) const {
   return false;
 }
 
-} // namespace util
+bool Tuple::operator<(const Tuple& b) {
+  const Tuple* t = this;
+  return (*t) < b;
+}
+
+std::string Tuple::ToString() {
+  std::string str = "";
+  char i[128];
+  sprintf(i, "term: %u\n", this->term);
+  str += i;
+  sprintf(i, "document: %u\n", this->document);
+  str += i;
+  sprintf(i, "frequency: %u\n", this->frequency);
+  str += i;
+  sprintf(i, "position: %u", this->position);
+  str += i;
+  return str;
+}
+
+}  // namespace util
