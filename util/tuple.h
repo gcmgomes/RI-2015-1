@@ -13,11 +13,27 @@ struct Tuple {
   unsigned position;
   unsigned tuple_file_id;
 
+  Tuple(unsigned term_, unsigned document_, unsigned frequency_, unsigned position_) {
+    term = term_;
+    document = document_;
+    frequency = frequency_;
+    position = position_;
+    tuple_file_id = 0;
+  }
+
+  Tuple() {};
+
   // Returns true iff |this| is strictly smaller then |b|.
   bool operator<(const Tuple& b) const;
   bool operator<(const Tuple& b);
 
-  std::string ToString();
+  std::string ToString() const;
+};
+
+struct TupleCompare {
+  bool operator() (const Tuple& a, const Tuple& b) {
+    return a < b;
+  }
 };
 
 }  // namespace util

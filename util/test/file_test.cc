@@ -13,12 +13,13 @@ int main(int argc, char** argv) {
                       string(argv[1]) + "test.bin0");
   unsigned i = 0;
   while (i < 10) {
-    t.term = i;
-    t.document = i;
-    t.frequency = i;
-    t.position = i;
-    t.tuple_file_id = i;
-    f.UnformattedWrite(&t);
+    t.term = i+10;
+    t.document = i+20;
+    t.frequency = i+30;
+    t.position = i+40;
+    t.tuple_file_id = i+50;
+    f.WriteTuple(&t);
+    cout << t.ToString() << endl;
     i++;
   }
   i--;
@@ -29,6 +30,7 @@ int main(int argc, char** argv) {
       break;
     }
     t = *t1;
+    cout << t.ToString() << endl;
   }
   return 0;
 }

@@ -1,5 +1,6 @@
 CC := g++
-CFLAGS := -Wall -g -c
+BINFLAGS := -std=c++11 -Wall -g
+CFLAGS := $(BINFLAGS) -c
 
 AR := ar
 ARFLAGS := rcs
@@ -9,6 +10,8 @@ ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 LIBPATH := $(ROOT)/lib
 
 OBJPATH := $(ROOT)/obj
+
+DATAPATH := $(ROOT)/data
 
 TESTPATH := $(ROOT)/test
 
@@ -27,7 +30,7 @@ libfilemanager.a: file_manager.o
 clean:
 	rm $(LIBPATH)/*.a
 	rm $(OBJPATH)/*.o
-	rm $(TESTPATH)/*bin*
+	rm $(TESTPATH)/rw_test
 
 test: libfilemanager.a
-	$(CC) -Wall -g $(LIBPATH)/main.cc $(LIBPATH)/libfilemanager.a -o $(LIBPATH)/x
+	$(CC) $(BINFLAGS) $(TESTPATH)/file_test.cc $(LIBPATH)/libfilemanager.a -o $(TESTPATH)/rw_test

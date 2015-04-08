@@ -36,16 +36,16 @@ bool Tuple::operator<(const Tuple& b) {
   return (*t) < b;
 }
 
-std::string Tuple::ToString() {
+std::string Tuple::ToString() const {
   std::string str = "";
   char i[128];
-  sprintf(i, "term: %u\n", this->term);
+  sprintf(i, "%u ", this->term);
   str += i;
-  sprintf(i, "document: %u\n", this->document);
+  sprintf(i, "%u ", this->document);
   str += i;
-  sprintf(i, "frequency: %u\n", this->frequency);
+  sprintf(i, "%u ", this->frequency);
   str += i;
-  sprintf(i, "position: %u", this->position);
+  sprintf(i, "%u", this->position);
   str += i;
   return str;
 }
