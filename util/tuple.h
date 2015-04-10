@@ -2,6 +2,7 @@
 #define _RI_2015_1_UTIL_TUPLE_H_
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace util {
@@ -13,7 +14,8 @@ struct Tuple {
   unsigned position;
   unsigned tuple_file_id;
 
-  Tuple(unsigned term_, unsigned document_, unsigned frequency_, unsigned position_) {
+  Tuple(unsigned term_, unsigned document_, unsigned frequency_,
+        unsigned position_) {
     term = term_;
     document = document_;
     frequency = frequency_;
@@ -21,7 +23,7 @@ struct Tuple {
     tuple_file_id = 0;
   }
 
-  Tuple() {};
+  Tuple(){};
 
   // Returns true iff |this| is strictly smaller then |b|.
   bool operator<(const Tuple& b) const;
@@ -31,8 +33,12 @@ struct Tuple {
 };
 
 struct TupleCompare {
-  bool operator() (const Tuple& a, const Tuple& b) {
+  bool operator()(const Tuple& a, const Tuple& b) {
     return a < b;
+  }
+  bool operator()(const std::unique_ptr<Tuple>& a,
+                  const std::unique_ptr<Tuple>& b) {
+    return *a < *b;
   }
 };
 

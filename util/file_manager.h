@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <queue>
 #include <vector>
 #include <string>
@@ -21,7 +22,7 @@ class FileManager {
   // Get next tuple based on |file_id|.
   // Returns NULL if EOF has already been reached, otherwise the caller
   // takes ownership of the returned object.
-  Tuple* GetNextTuple(unsigned file_id);
+  std::unique_ptr<Tuple> GetNextTuple(unsigned file_id);
 
   // Writes |tuple| to |output_file_| without any special treatment.
   void WriteTuple(const Tuple* tuple);
@@ -33,7 +34,9 @@ class FileManager {
   void CloseOutput();
 
   // Initializes |heap| with exactly 1 Tuple from each one of the input files.
-  void InitializeHeap(std::priority_queue<util::Tuple, std::vector<util::Tuple>, util::TupleCompare>* heap);
+  void InitializeHeap(std::priority_queue<
+      std::unique_ptr<util::Tuple>, std::vector<std::unique_ptr<util::Tuple> >,
+      util::TupleCompare>* heap);
 
   // Divides the file pointed by |file_path| into the needed smaler, partially
   // sorted files.
@@ -41,7 +44,7 @@ class FileManager {
 
  private:
   std::string file_prefix_;
-  std::vector<std::ifstream*> input_files_;
+  std::vector<std::unique_ptr<std::ifstream> > input_files_;
   std::ofstream output_file_;
 };
 

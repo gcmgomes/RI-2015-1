@@ -27,10 +27,17 @@ file_manager.o: libtuple.a $(ROOT)/file_manager.h $(ROOT)/file_manager.cc
 libfilemanager.a: file_manager.o
 	$(AR) $(ARFLAGS) $(LIBPATH)/libfilemanager.a $(OBJPATH)/file_manager.o $(OBJPATH)/tuple.o
 
+vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
+	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o
+
+libvocabulary.a: vocabulary.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libvocabulary.a $(OBJPATH)/vocabulary.o
+
 clean:
 	rm $(LIBPATH)/*.a
 	rm $(OBJPATH)/*.o
 	rm $(TESTPATH)/rw_test
 
-test: libfilemanager.a
+test: libfilemanager.a libvocabulary.a
 	$(CC) $(BINFLAGS) $(TESTPATH)/file_test.cc $(LIBPATH)/libfilemanager.a -o $(TESTPATH)/rw_test
+	$(CC) $(BINFLAGS) $(TESTPATH)/vocabulary_test.cc $(LIBPATH)/libvocabulary.a -o $(TESTPATH)/term_test
