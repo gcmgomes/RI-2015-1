@@ -38,6 +38,8 @@ clean:
 	rm $(OBJPATH)/*.o
 	rm $(TESTPATH)/rw_test
 
-test: libfilemanager.a libvocabulary.a
+test: libfilemanager.a 
+	#libvocabulary.a
 	$(CC) $(BINFLAGS) $(TESTPATH)/file_test.cc $(LIBPATH)/libfilemanager.a -o $(TESTPATH)/rw_test
-	$(CC) $(BINFLAGS) $(TESTPATH)/vocabulary_test.cc $(LIBPATH)/libvocabulary.a -o $(TESTPATH)/term_test
+	$(CC) $(BINFLAGS) $(TESTPATH)/human_convert.cc $(LIBPATH)/libfilemanager.a -o $(TESTPATH)/converter
+	#$(CC) $(BINFLAGS) $(TESTPATH)/vocabulary_test.cc $(LIBPATH)/libvocabulary.a -o $(TESTPATH)/term_test

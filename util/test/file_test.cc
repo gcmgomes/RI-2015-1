@@ -2,13 +2,14 @@
 #include "../file_manager.h"
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 
 using namespace std;
 
 int main(int argc, char** argv) {
   util::Tuple t;
-  util::Tuple* t1 = NULL;
+  std::unique_ptr<util::Tuple> t1 = nullptr;
   util::FileManager f(1, string(argv[1]) + "test.bin",
                       string(argv[1]) + "test.bin0");
   unsigned i = 0;
@@ -25,11 +26,11 @@ int main(int argc, char** argv) {
   i--;
   f.CloseOutput();
   while (true) {
-    t1 = f.GetNextTuple(0);
+    t1 = std::move(f.GetNextTuple(0));
     if(t1 == NULL) {
       break;
     }
-    t = *t1;
+    t = *t1.release();
     cout << t.ToString() << endl;
   }
   return 0;

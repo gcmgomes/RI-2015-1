@@ -42,6 +42,11 @@ class FileManager {
   // sorted files.
   void Split(const std::string& file_path);
 
+  // Converts |binary_input_file_path| into human-readable
+  // |text_output_file_path|.
+  static void ConvertBinToText(const std::string& binary_input_file_path,
+                               const std::string& text_output_file_path);
+
  private:
   std::string file_prefix_;
   std::vector<std::unique_ptr<std::ifstream> > input_files_;

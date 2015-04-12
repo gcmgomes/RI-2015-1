@@ -37,3 +37,4 @@ clean:
 test: $(TESTPATH)/tuple_sorter.cc $(TESTPATH)/test_gen.cc libsorter.a
 	$(CC) $(BINFLAGS) $(TESTPATH)/tuple_sorter.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/sorter
 	$(CC) $(BINFLAGS) $(TESTPATH)/test_gen.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/gen
+	$(CC) $(BINFLAGS) $(TESTPATH)/test_splitter.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/splitter

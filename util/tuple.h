@@ -15,13 +15,12 @@ struct Tuple {
   unsigned tuple_file_id;
 
   Tuple(unsigned term_, unsigned document_, unsigned frequency_,
-        unsigned position_) {
-    term = term_;
-    document = document_;
-    frequency = frequency_;
-    position = position_;
-    tuple_file_id = 0;
-  }
+        unsigned position_)
+      : term(term_),
+        document(document_),
+        frequency(frequency_),
+        position(position_),
+        tuple_file_id(0) {};
 
   Tuple(){};
 
@@ -32,12 +31,19 @@ struct Tuple {
   std::string ToString() const;
 };
 
+// Comparator class.
 struct TupleCompare {
   bool operator()(const Tuple& a, const Tuple& b) {
     return a < b;
   }
+
   bool operator()(const std::unique_ptr<Tuple>& a,
                   const std::unique_ptr<Tuple>& b) {
+    return *b < *a;
+  }
+
+  static bool TuplePointerCompare(const std::unique_ptr<Tuple>& a,
+                                  const std::unique_ptr<Tuple>& b) {
     return *a < *b;
   }
 };

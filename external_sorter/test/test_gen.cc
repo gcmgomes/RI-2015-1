@@ -32,65 +32,50 @@ vector<util::Tuple>* GenerateDocument(unsigned doc_id, unsigned doc_size,
 }
 
 int main(int argc, char** argv) {
-  if (argc < 3) {
-    cout << argv[0] << " [number of runs generate] [runs file prefix] <doc "
-                       "count (10000)> <unique term count (10000)> <SKIP>"
+  if (argc < 4) {
+    cout << argv[0]
+         << "[runs file prefix] <doc count (10000)> <unique term count (10000)>"
          << endl;
     return 0;
   }
   unsigned doc_count = 10000, doc_size = 0, unique_term_count = 10000;
-  unsigned runs_count = 0;
   unsigned long long tuple_count = 0;
-  bool skip_gen = 0;
-  sscanf(argv[1], "%u", &runs_count);
-  if (argc > 3) {
-    sscanf(argv[3], "%u", &doc_count);
-    if (doc_count == 0) {
-      doc_count = 10000;
-    }
-  }
-  if (argc > 4) {
-    sscanf(argv[4], "%u", &unique_term_count);
-    if (unique_term_count == 0) {
-      unique_term_count = 10000;
-    }
+
+  sscanf(argv[2], "%u", &doc_count);
+  if (doc_count == 0) {
+    doc_count = 10000;
   }
 
-  if (argc > 5) {
-    sscanf(argv[5], "%u", &doc_size);
-    skip_gen = doc_size > 2;
+  sscanf(argv[3], "%u", &unique_term_count);
+  if (unique_term_count == 0) {
+    unique_term_count = 10000;
   }
 
-  if (!skip_gen) {
-    util::FileManager* file_manager = new util::FileManager(
-        runs_count, string(argv[2]), string(argv[2]) + ".full");
-    // Documents range in [0,100).
-    while (doc_count) {
-      doc_count--;
-      doc_size = rand() % (unique_term_count / 10);
-      vector<util::Tuple>* tuples =
-          GenerateDocument(doc_count, doc_size, unique_term_count);
-      tuple_count += tuples->size();
-      fflush(stdout);
-      // Document size ranges in [0, doc_size).
-      while (doc_size) {
-        doc_size--;
-        util::Tuple* t = NULL;
-        t = &(*tuples)[doc_size];
-        file_manager->WriteTuple(t);
-      }
-      delete tuples;
+  util::FileManager* file_manager =
+      new util::FileManager(1, string(argv[1]), string(argv[1]) + ".full");
+
+  // Documents range in [0,doc_count).
+  cout << doc_count << ' ' << unique_term_count << endl;
+  while (doc_count) {
+    doc_count--;
+    doc_size = rand() % (unique_term_count / 10);
+    vector<util::Tuple>* tuples =
+        GenerateDocument(doc_count, doc_size, unique_term_count);
+    tuple_count += tuples->size();
+    fflush(stdout);
+    // Document size ranges in [0, doc_size).
+    while (doc_size) {
+      doc_size--;
+      util::Tuple* t = NULL;
+      t = &(*tuples)[doc_size];
+      file_manager->WriteTuple(t);
     }
-    file_manager->CloseOutput();
-    delete file_manager;
+    delete tuples;
   }
 
-  else {
-    util::FileManager* file_manager = new util::FileManager(
-        runs_count, string(argv[2]), string(argv[2]) + ".full.dummy");
-    file_manager->Split(string(argv[2]) + ".full");
-    file_manager->CloseOutput();
-    delete file_manager;
-  }
+  cout << "Generated tuples: " << tuple_count << endl;
+  file_manager->CloseOutput();
+
+  delete file_manager;
   return 0;
 }

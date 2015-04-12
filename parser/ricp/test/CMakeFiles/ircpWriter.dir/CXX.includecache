@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/gcmgomes/RI-2015-1/parser/ricp/test/testWriter.cpp
+CollectionWriter.h
+/home/gcmgomes/RI-2015-1/parser/ricp/test/CollectionWriter.h
+cstdlib
+-
+iostream
+-
+
+src/CollectionWriter.h
+envDefault.h
+src/envDefault.h
+Document.h
+src/Document.h
+stdint.h
+-
+cstdio
+-
+cstdlib
+-
+
+src/Document.h
+string
+-
+
+src/envDefault.h
+zlib.h
+-
+

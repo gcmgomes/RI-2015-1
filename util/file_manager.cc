@@ -18,7 +18,9 @@ FileManager::FileManager(unsigned file_count, std::string file_prefix,
   output_file_.open(output_file_path.c_str(), std::ofstream::binary);
 }
 
-FileManager::~FileManager() { output_file_.close(); }
+FileManager::~FileManager() {
+  output_file_.close();
+}
 
 static std::unique_ptr<Tuple> GetTuple(
     std::unique_ptr<std::ifstream>& input_file) {
@@ -127,10 +129,32 @@ void FileManager::Split(const std::string& file_path) {
       current_block_size--;
       tuple_count--;
     }
-    std::sort(tuples.begin(), tuples.end());
+    std::sort(tuples.begin(), tuples.end(), util::TupleCompare::TuplePointerCompare);
     OutputTuples(AssembleFilePath(this->file_prefix_, file_id++), tuples);
   }
   tuple_file->close();
+}
+
+static const std::string GetTupleText(std::ifstream* input_file) {
+  Tuple tuple(0,0,0,0);
+  input_file->read(reinterpret_cast<char*>(&tuple),
+                   4 * sizeof(unsigned));
+  return tuple.ToString();
+}
+
+void FileManager::ConvertBinToText(const std::string& binary_input_file_path,
+                                   const std::string& text_output_file_path) {
+  std::ifstream input_file(binary_input_file_path.c_str(), std::ifstream::binary);
+  std::ofstream output_file(text_output_file_path.c_str(), std::ofstream::out);
+
+  std::string str = GetTupleText(&input_file);
+  while(!input_file.eof() && input_file.peek() != EOF) {
+    output_file << str << std::endl;
+    str = GetTupleText(&input_file);
+  }
+    output_file << str << std::endl;
+  input_file.close();
+  output_file.close();
 }
 
 }  // namespace util
