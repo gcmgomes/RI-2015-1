@@ -45,7 +45,7 @@ void CollectionReader::initialize() {
 
 bool CollectionReader::getNextDocument(Document & doc) {
 
-	char url[MAX_STRING_SIZE], inputContentFileName[MAX_STRING_SIZE];
+	char url[MAX_STRING_SIZE], inputContentFileName[MAX_STRING_SIZE] = "";
 	size_t beginOffset = 0, endOffset = 0, uncompressedPageSize = 0;
 	
 	fscanf(inputIndexFilePtr_, "%s %s %lu %lu %lu",
@@ -55,7 +55,7 @@ bool CollectionReader::getNextDocument(Document & doc) {
 				 &endOffset,
 				 &uncompressedPageSize);
 
-	string tmpContentFileName;
+	string tmpContentFileName = "";
 	if(inputContentFileName_ == "") { // Reading first line in index
 		// Openning content file
 		tmpContentFileName = inputDirectory_ + '/' + string(inputContentFileName);
@@ -66,8 +66,10 @@ bool CollectionReader::getNextDocument(Document & doc) {
 
 		if(DEBUG) { cerr << "File [" << inputContentFileName_ << "] openned." << endl;  }
 	}
-
-	tmpContentFileName = inputDirectory_ + '/' + string(inputContentFileName);
+	
+	tmpContentFileName = inputDirectory_;
+	tmpContentFileName += '/';
+	tmpContentFileName += inputContentFileName;
 	if(inputContentFileName_ != tmpContentFileName) { // It's time to move to next file
 		fclose(inputContentFilePtr_);
 		inputContentFilePtr_ = NULL;
@@ -90,6 +92,7 @@ bool CollectionReader::getNextDocument(Document & doc) {
 	assert(nchars == compressedDocSize);
 
 	if(feof(inputIndexFilePtr_)) {
+		delete[] compressedDoc;
 		return false;
 	}
 

@@ -3,7 +3,7 @@
  * @author: anisio@dcc.ufmg.br
  */
 
-#include "CollectionReader.h"
+#include "../src/CollectionReader.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -15,8 +15,8 @@ int main(int argc, char** argv) {
 
 	cout << "Testing CollectionReader class..." << endl;
 
-	string inputDirectory("/mnt/hd1/anisio/doutorado/estagio/RI/data/outCompressed");
-	string indexFileName("indexToCompressedColection.txt");
+	string inputDirectory(argv[1]);
+	string indexFileName(argv[2]);
 
 	CollectionReader * reader = new CollectionReader(inputDirectory,
 													 indexFileName);
@@ -28,10 +28,7 @@ int main(int argc, char** argv) {
 		//	cout << "[" << doc.getURL() << "] [" << doc.getLength() << "]" << endl;
 		//	cout << "BEGINHTML[" << doc.getText() << "]ENDHTML" << endl;
 		//}
-		if((i%1000) == 0) {
 			cerr << "[" << doc.getURL() << "]" << endl;
-			cerr << i << " processed" << endl;
-		}
 		doc.clear();
 		++i;
 	}
