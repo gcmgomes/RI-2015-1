@@ -21,17 +21,23 @@ tuple.o: $(ROOT)/tuple.h $(ROOT)/tuple.cc
 libtuple.a: tuple.o
 	$(AR) $(ARFLAGS) $(LIBPATH)/libtuple.a $(OBJPATH)/tuple.o
 
-file_manager.o: libtuple.a $(ROOT)/file_manager.h $(ROOT)/file_manager.cc 
+indexer.o: $(ROOT)/indexer.h $(ROOT)/indexer.cc
+	$(CC) $(CFLAGS) $(ROOT)/indexer.cc -o $(OBJPATH)/indexer.o
+
+libindexer.a: indexer.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libindexer.a $(OBJPATH)/indexer.o $(OBJPATH)/tuple.o
+
+file_manager.o: libtuple.a libindexer.a $(ROOT)/file_manager.h $(ROOT)/file_manager.cc 
 	$(CC) $(CFLAGS) $(ROOT)/file_manager.cc -o $(OBJPATH)/file_manager.o
 
 libfilemanager.a: file_manager.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libfilemanager.a $(OBJPATH)/file_manager.o $(OBJPATH)/tuple.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libfilemanager.a $(OBJPATH)/file_manager.o $(OBJPATH)/tuple.o $(OBJPATH)/indexer.o
 
-vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
-	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o
+page.o: $(ROOT)/page.h $(ROOT)/page.cc
+	$(CC) $(CFLAGS) $(ROOT)/page.cc -o $(OBJPATH)/page.o
 
-libvocabulary.a: vocabulary.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libvocabulary.a $(OBJPATH)/vocabulary.o
+libpage.a: page.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libpage.a $(OBJPATH)/page.o
 
 clean:
 	rm $(LIBPATH)/*.a

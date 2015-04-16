@@ -16,16 +16,18 @@ struct Tuple {
 
   Tuple(unsigned term_, unsigned document_, unsigned frequency_,
         unsigned position_)
-      : term(term_),
-        document(document_),
-        frequency(frequency_),
-        position(position_),
-        tuple_file_id(0) {};
+      : term(term_), document(document_), frequency(frequency_),
+        position(position_), tuple_file_id(0){};
 
   Tuple(){};
 
-  // Returns true iff |this| is strictly smaller then |b|.
-  bool operator<(const Tuple& b) const;
+  // Returns the optimal number of runs with the given |memory_limit| and
+  // |total_tuples| that will be sorted.
+  static unsigned OptimalRunCount(unsigned memory_limit, unsigned total_tuples, bool verbose = 0);
+
+      // Returns true iff |this| is strictly smaller then |b|.
+      bool
+      operator<(const Tuple& b) const;
   bool operator<(const Tuple& b);
 
   std::string ToString() const;

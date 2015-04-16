@@ -5,56 +5,44 @@
 #include <cmath>
 #include "file_manager.h"
 
+using namespace std;
 namespace util {
 
-FileManager::FileManager(unsigned file_count, std::string file_prefix,
+FileManager::FileManager(unsigned file_count, std::string input_path,
                          std::string output_file_path) {
-  file_prefix_ = file_prefix;
+  input_path_ = input_path;
+  input_tuples_ = 0;
   unsigned i = 0;
   while (i < file_count) {
     input_files_.push_back(nullptr);
     i++;
   }
-  output_file_.open(output_file_path.c_str(), std::ofstream::binary);
+  if (!output_file_path.empty()) {
+    output_file_.reset(new std::fstream());
+    output_file_->open(output_file_path.c_str(),
+                       std::fstream::binary | std::fstream::out);
+  }
+  indexer_.reset(nullptr);
 }
 
 FileManager::~FileManager() {
-  output_file_.close();
+  if (output_file_ != nullptr) {
+    output_file_->close();
+  }
 }
 
 static std::unique_ptr<Tuple> GetTuple(
-    std::unique_ptr<std::ifstream>& input_file) {
+    std::unique_ptr<std::fstream>& input_file) {
   std::unique_ptr<Tuple> new_tuple(new Tuple(0, 0, 0, 0));
   input_file->read(reinterpret_cast<char*>(new_tuple.get()),
                    4 * sizeof(unsigned));
   return new_tuple;
 }
 
-static void OutputTuples(const std::string& output_file_path,
-                         const std::vector<std::unique_ptr<Tuple> >& tuples) {
-  unsigned i = 0;
-  std::ofstream output_file;
-  output_file.open(output_file_path.c_str(), std::ofstream::binary);
-  while (i < tuples.size()) {
-    output_file.write(reinterpret_cast<const char*>(tuples[i].get()),
-                      4 * sizeof(unsigned));
-    i++;
-  }
-}
-
-static std::string AssembleFilePath(std::string file_path, unsigned file_id) {
-  char file_suffix[16];
-  sprintf(file_suffix, "%u", file_id);
-  file_path += file_suffix;
-  return file_path;
-}
-
 std::unique_ptr<Tuple> FileManager::GetNextTuple(unsigned file_id) {
   // Lazy input file initialization.
-  std::string file_path = AssembleFilePath(this->file_prefix_, file_id);
   if (input_files_[file_id] == nullptr) {
-    input_files_[file_id].reset(new std::ifstream());
-    input_files_[file_id]->open(file_path.c_str(), std::ifstream::binary);
+    InputFileInitialization(file_id);
   }
 
   if (!input_files_[file_id]->is_open()) {
@@ -64,30 +52,47 @@ std::unique_ptr<Tuple> FileManager::GetNextTuple(unsigned file_id) {
   std::unique_ptr<Tuple> new_tuple = GetTuple(input_files_[file_id]);
   new_tuple->tuple_file_id = file_id;
 
-  // Check if file is done and close it.
-  if (input_files_[file_id]->peek() == EOF || input_files_[file_id]->eof()) {
+  // Check if file should be closed.
+  if (CloseForInput(file_id)) {
     input_files_[file_id]->close();
   }
 
   return std::move(new_tuple);
 }
 
+static void WriteTupleInternal(const Tuple* tuple,
+                               std::unique_ptr<std::fstream>& file) {
+  if (tuple != NULL && file->is_open()) {
+    file->write(reinterpret_cast<const char*>(tuple), 4 * sizeof(unsigned));
+  }
+}
+
 void FileManager::WriteTuple(const Tuple* tuple) {
-  if (tuple != NULL && output_file_.is_open()) {
-    output_file_.write(reinterpret_cast<const char*>(tuple),
-                       4 * sizeof(unsigned));
+  WriteTupleInternal(tuple, output_file_);
+}
+
+void FileManager::Index(const Tuple* tuple) {
+  if(indexer_ == nullptr) {
+    indexer_.reset(new Indexer());
+  }
+  indexer_->WriteTuple(tuple, output_file_);
+}
+
+void FileManager::FinishIndex() {
+  if (indexer_ != nullptr) {
+    indexer_->FinishIndex(output_file_);
   }
 }
 
 void FileManager::Flush() {
-  if (output_file_.is_open()) {
-    output_file_.flush();
+  if (output_file_->is_open()) {
+    output_file_->flush();
   }
 }
 
 void FileManager::CloseOutput() {
-  if (output_file_.is_open()) {
-    output_file_.close();
+  if (output_file_->is_open()) {
+    output_file_->close();
   }
 }
 
@@ -104,57 +109,88 @@ void FileManager::InitializeHeap(std::priority_queue<
   }
 }
 
-void FileManager::Split(const std::string& file_path) {
+void FileManager::PartialEmplaceSort() {
+  std::vector<Tuple> tuples;
   unsigned file_id = 0;
-  std::unique_ptr<std::ifstream> tuple_file(new std::ifstream());
+  while (file_id < input_files_.size()) {
+    tuples.clear();
 
-  // Determine the amount of tuples in the file pointed by |file_path|.
-  tuple_file->open(file_path.c_str(), std::ifstream::binary);
-  tuple_file->seekg(0, tuple_file->end);
+    do {
+      tuples.push_back(*GetNextTuple(file_id).get());
 
-  unsigned long long tuple_count = 0;
-  tuple_count = tuple_file->tellg() / (4 * sizeof(unsigned));
+    } while (!CloseForInput(file_id));
+    InputFileInitialization(file_id);
 
-  // Set |tuple_file| for effective input.
-  tuple_file->seekg(0, tuple_file->beg);
+    std::sort(tuples.begin(), tuples.end());
 
-  unsigned tuple_block_size =
-      (unsigned)ceil((double)tuple_count / (double)this->input_files_.size());
-
-  while (tuple_count) {
-    int current_block_size = tuple_block_size;
-    std::vector<std::unique_ptr<Tuple> > tuples;
-    while (current_block_size && tuple_count) {
-      tuples.push_back(std::move(GetTuple(tuple_file)));
-      current_block_size--;
-      tuple_count--;
+    unsigned i = 0;
+    while (i < tuples.size()) {
+      WriteTupleInternal(&tuples[i], input_files_[file_id]);
+      i++;
     }
-    std::sort(tuples.begin(), tuples.end(), util::TupleCompare::TuplePointerCompare);
-    OutputTuples(AssembleFilePath(this->file_prefix_, file_id++), tuples);
+    input_files_[file_id]->close();
+    file_id++;
   }
-  tuple_file->close();
 }
 
-static const std::string GetTupleText(std::ifstream* input_file) {
-  Tuple tuple(0,0,0,0);
-  input_file->read(reinterpret_cast<char*>(&tuple),
-                   4 * sizeof(unsigned));
+static const std::string GetTupleText(std::fstream* input_file) {
+  Tuple tuple(0, 0, 0, 0);
+  input_file->read(reinterpret_cast<char*>(&tuple), 4 * sizeof(unsigned));
   return tuple.ToString();
 }
 
 void FileManager::ConvertBinToText(const std::string& binary_input_file_path,
                                    const std::string& text_output_file_path) {
-  std::ifstream input_file(binary_input_file_path.c_str(), std::ifstream::binary);
-  std::ofstream output_file(text_output_file_path.c_str(), std::ofstream::out);
+  std::fstream input_file(binary_input_file_path.c_str(),
+                          std::fstream::binary | std::fstream::in);
+  std::fstream output_file(text_output_file_path.c_str(), std::fstream::out);
 
   std::string str = GetTupleText(&input_file);
-  while(!input_file.eof() && input_file.peek() != EOF) {
+  while (!input_file.eof() && input_file.peek() != EOF) {
     output_file << str << std::endl;
     str = GetTupleText(&input_file);
   }
-    output_file << str << std::endl;
+
+  output_file << str << std::endl;
   input_file.close();
   output_file.close();
+}
+
+unsigned FileManager::CountTuples(const std::string& input_file_path) {
+  std::fstream tuple_file;
+  tuple_file.open(input_file_path.c_str(),
+                  std::fstream::binary | std::fstream::in);
+  // Move pointer to EOF.
+  tuple_file.seekg(0, tuple_file.end);
+  unsigned val = tuple_file.tellg() / (4 * sizeof(unsigned));
+  tuple_file.close();
+  return val;
+}
+
+void FileManager::InputFileInitialization(unsigned file_id) {
+  if (input_tuples_ == 0) {
+    input_tuples_ = CountTuples(input_path_);
+    input_tuples_per_block_ = (unsigned)ceil((double)input_tuples_ /
+                                             (double)this->input_files_.size());
+  }
+
+  std::unique_ptr<std::fstream>& file = input_files_[file_id];
+  file.reset(new std::fstream());
+
+  // std::fstream::out needed for emplace sorting.
+  file->open(input_path_.c_str(),
+             std::fstream::binary | std::fstream::in | std::fstream::out);
+
+  file->seekg(input_tuples_per_block_ * file_id * 4 * sizeof(unsigned));
+  file->seekp(file->tellg());
+}
+
+bool FileManager::CloseForInput(unsigned file_id) {
+  unsigned next_block_start_point =
+      input_tuples_per_block_ * (file_id + 1) * 4 * sizeof(unsigned);
+  std::unique_ptr<std::fstream>& file = input_files_[file_id];
+  return file->peek() == EOF || file->eof() ||
+         ((unsigned)file->tellg() == next_block_start_point);
 }
 
 }  // namespace util

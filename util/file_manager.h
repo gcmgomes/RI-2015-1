@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include "tuple.h"
+#include "indexer.h"
 
 namespace util {
 
@@ -27,6 +28,12 @@ class FileManager {
   // Writes |tuple| to |output_file_| without any special treatment.
   void WriteTuple(const Tuple* tuple);
 
+  // Index |tuple|.
+  void Index(const Tuple* tuple);
+
+  // Finishes all index operations. MUST call when done indexing.
+  void FinishIndex();
+
   // Flushes |output_file_|.
   void Flush();
 
@@ -40,17 +47,29 @@ class FileManager {
 
   // Divides the file pointed by |file_path| into the needed smaler, partially
   // sorted files.
-  void Split(const std::string& file_path);
+  void PartialEmplaceSort();
 
   // Converts |binary_input_file_path| into human-readable
   // |text_output_file_path|.
   static void ConvertBinToText(const std::string& binary_input_file_path,
                                const std::string& text_output_file_path);
 
+  // Returns the amount of tuples present in |input_file_path|.
+  static unsigned CountTuples(const std::string& input_file_path);
+
  private:
-  std::string file_prefix_;
-  std::vector<std::unique_ptr<std::ifstream> > input_files_;
-  std::ofstream output_file_;
+  // Properly initializes |input_file[|file_id|]|.
+  void InputFileInitialization(unsigned file_id);
+
+  // Returns true if |input_file[|file_id|]| should be closed.
+  bool CloseForInput(unsigned file_id);
+
+  unsigned input_tuples_;
+  unsigned input_tuples_per_block_;
+  std::string input_path_;
+  std::vector<std::unique_ptr<std::fstream> > input_files_;
+  std::unique_ptr<std::fstream> output_file_;
+  std::unique_ptr<Indexer> indexer_;
 };
 
 }  // namespace util

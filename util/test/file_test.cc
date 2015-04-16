@@ -8,30 +8,12 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  util::Tuple t;
-  std::unique_ptr<util::Tuple> t1 = nullptr;
-  util::FileManager f(1, string(argv[1]) + "test.bin",
-                      string(argv[1]) + "test.bin0");
-  unsigned i = 0;
-  while (i < 10) {
-    t.term = i+10;
-    t.document = i+20;
-    t.frequency = i+30;
-    t.position = i+40;
-    t.tuple_file_id = i+50;
-    f.WriteTuple(&t);
-    cout << t.ToString() << endl;
-    i++;
+  if(argc < 3) {
+    cout << argv[0] << " [tuple file] [memory limit]" << endl;
+    return 0;
   }
-  i--;
-  f.CloseOutput();
-  while (true) {
-    t1 = std::move(f.GetNextTuple(0));
-    if(t1 == NULL) {
-      break;
-    }
-    t = *t1.release();
-    cout << t.ToString() << endl;
-  }
-  return 0;
+  unsigned tuple_count = 0, memory_limit = 0;
+  sscanf(argv[2], "%u", &memory_limit);
+  tuple_count = util::FileManager::CountTuples(argv[1]);
+  cout << util::Tuple::OptimalRunCount(memory_limit, tuple_count, 0) << endl;
 }

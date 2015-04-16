@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
   }
 
   util::FileManager* file_manager =
-      new util::FileManager(1, string(argv[1]), string(argv[1]) + ".full");
+      new util::FileManager(1, string(argv[1]), string(argv[1]));
 
   // Documents range in [0,doc_count).
   cout << doc_count << ' ' << unique_term_count << endl;

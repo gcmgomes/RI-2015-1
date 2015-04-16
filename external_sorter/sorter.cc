@@ -14,16 +14,9 @@ Sorter::~Sorter() {
 
 void Sorter::ExternalMultiwayMerge() {
   file_manager_->InitializeHeap(&(this->heap_));
-//  unsigned sorted_tuples = 0;
 
   while (!heap_.empty()) {
-    file_manager_->WriteTuple(heap_.top().get());
-
-/*    sorted_tuples++;
-    if (!(sorted_tuples % 100)) {
-      std::cout << "\rSorted tuples: " << sorted_tuples;
-      std::fflush(stdout);
-    }*/
+    file_manager_->Index(heap_.top().get());
 
     std::unique_ptr<util::Tuple> tuple =
         file_manager_->GetNextTuple(heap_.top()->tuple_file_id);
@@ -34,7 +27,7 @@ void Sorter::ExternalMultiwayMerge() {
     }
   }
 
-//  std::cout << "\rSorted tuples: " << sorted_tuples << std::endl;
+  file_manager_->FinishIndex();
   file_manager_->Flush();
   file_manager_->CloseOutput();
 }

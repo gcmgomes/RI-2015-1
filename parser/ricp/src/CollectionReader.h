@@ -6,8 +6,8 @@
 #ifndef __COLLECTION_READER_H__
 #define __COLLECTION_READER_H__
 
-#include "envDefault.h"
-#include "Document.h"
+#include "../src/envDefault.h"
+#include "../src/Document.h"
 
 #include <string>
 

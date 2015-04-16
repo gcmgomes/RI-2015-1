@@ -12,11 +12,25 @@ LIBPATH := $(ROOT)/lib
 
 OBJPATH := $(ROOT)/obj
 
-TESTPATH := $(ROOT)/test
+SRCPATH := $(ROOT)/src
+
+BINPATH := $(ROOT)/bin
 
 DATAPATH := $(ROOT)/data
 
 UTIL := $(PROOT)/util
+
+deploy:
+	if [ ! -d $(LIBPATH) ]; \
+		then \
+			mkdir $(LIBPATH);  \
+			mkdir $(OBJPATH);  \
+			mkdir $(BINPATH);  \
+			mkdir $(DATAPATH); \
+		else \
+			echo "Directories exist"; \
+	fi
+
 
 dependencies:
 	cd $(UTIL) && $(MAKE) libfilemanager.a
@@ -27,14 +41,15 @@ sorter.o: $(ROOT)/sorter.h $(ROOT)/sorter.cc
 libsorter.a: sorter.o dependencies
 	$(AR) $(ARFLAGS) $(LIBPATH)/libsorter.a $(UTIL)/obj/tuple.o \
 																					$(UTIL)/obj/file_manager.o \
+																					$(UTIL)/obj/indexer.o \
 																					$(OBJPATH)/sorter.o
 
 clean:
 	rm $(LIBPATH)/*.a
 	rm $(OBJPATH)/*.o
-	cd $(TESTPATH) && rm sorter gen
+	cd $(SRCPATH) && rm sorter gen
 
-test: $(TESTPATH)/tuple_sorter.cc $(TESTPATH)/test_gen.cc libsorter.a
-	$(CC) $(BINFLAGS) $(TESTPATH)/tuple_sorter.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/sorter
-	$(CC) $(BINFLAGS) $(TESTPATH)/test_gen.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/gen
-	$(CC) $(BINFLAGS) $(TESTPATH)/test_splitter.cc $(LIBPATH)/libsorter.a -o $(TESTPATH)/splitter
+test: $(SRCPATH)/tuple_sorter.cc $(SRCPATH)/test_gen.cc libsorter.a
+	$(CC) $(BINFLAGS) $(SRCPATH)/tuple_sorter.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/external_sorter
+	$(CC) $(BINFLAGS) $(SRCPATH)/tuple_gen.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/tuple_gen
+	$(CC) $(BINFLAGS) $(SRCPATH)/emplace_partial_sorter.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/emplace_partial_sorter

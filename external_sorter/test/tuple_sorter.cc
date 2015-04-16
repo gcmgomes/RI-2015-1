@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char** argv) {
   if (argc < 4) {
-    cout << "[number of runs to sort] [runs file prefix] [output file]" << endl;;
+    cout << "[number of runs to sort] [partially sorted tuple file] [output file]" << endl;;
     return 0;
   }
 
