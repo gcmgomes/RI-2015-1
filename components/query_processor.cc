@@ -51,7 +51,7 @@ static bool IsOr(const std::string& q, unsigned position) {
 // Nices up |query| so parsing it becomes even easier.
 static std::string TreatQuery(const std::string& query) {
   std::string str = "";
-  unsigned i = 0, j = 0;
+  unsigned i = 0;
   while (i < query.size()) {
     if (query[i] != ' ') {
       if (IsAnd(query, i)) {
