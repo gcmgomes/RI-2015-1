@@ -8,7 +8,6 @@
 #include "htmlEntities.h"
 
 namespace parsing {
-namespace util {
 
 // Check if |c| is neither a alphanumeric character nor a simple whitespace;
 bool is_unwanted_char(char c) {
@@ -64,7 +63,6 @@ void TreatText(std::string& text) {
   std::replace_if(text.begin(), text.end(), is_unwanted_char, ' ');
 }
 
-}  // namespace util
 }  // namespace parsing
 
 #endif

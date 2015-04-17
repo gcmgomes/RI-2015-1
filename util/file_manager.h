@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 #include "tuple.h"
-#include "indexer.h"
+#include "../components/indexer.h"
 
 namespace util {
 
@@ -69,7 +69,7 @@ class FileManager {
   std::string input_path_;
   std::vector<std::unique_ptr<std::fstream> > input_files_;
   std::unique_ptr<std::fstream> output_file_;
-  std::unique_ptr<Indexer> indexer_;
+  std::unique_ptr<components::Indexer> indexer_;
 };
 
 }  // namespace util

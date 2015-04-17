@@ -20,8 +20,10 @@ DATAPATH := $(ROOT)/data
 
 UTIL := $(PROOT)/util
 
+COMPONENTS := $(PROOT)/components
+
 deploy:
-	if [ ! -d $(LIBPATH) ]; \
+	@if [ ! -d $(LIBPATH) ]; \
 		then \
 			mkdir $(LIBPATH);  \
 			mkdir $(OBJPATH);  \
@@ -34,6 +36,7 @@ deploy:
 
 dependencies:
 	cd $(UTIL) && $(MAKE) libfilemanager.a
+	cd $(COMPONENTS) && $(MAKE) libindexer.a
 
 sorter.o: $(ROOT)/sorter.h $(ROOT)/sorter.cc
 	$(CC) $(CFLAGS) $(ROOT)/sorter.cc -o $(OBJPATH)/sorter.o
@@ -41,15 +44,16 @@ sorter.o: $(ROOT)/sorter.h $(ROOT)/sorter.cc
 libsorter.a: sorter.o dependencies
 	$(AR) $(ARFLAGS) $(LIBPATH)/libsorter.a $(UTIL)/obj/tuple.o \
 																					$(UTIL)/obj/file_manager.o \
-																					$(UTIL)/obj/indexer.o \
+																					$(COMPONENTS)/obj/indexer.o \
 																					$(OBJPATH)/sorter.o
 
 clean:
-	rm $(LIBPATH)/*.a
-	rm $(OBJPATH)/*.o
-	cd $(SRCPATH) && rm sorter gen
+	@rm -rf $(LIBPATH)
+	@rm -rf $(OBJPATH)
+	@rm -rf $(BINPATH)
+	@rm -rf $(DATAPATH)
 
-test: $(SRCPATH)/tuple_sorter.cc $(SRCPATH)/test_gen.cc libsorter.a
-	$(CC) $(BINFLAGS) $(SRCPATH)/tuple_sorter.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/external_sorter
-	$(CC) $(BINFLAGS) $(SRCPATH)/tuple_gen.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/tuple_gen
+bin: libsorter.a $(SRCPATH)/external_sorter.cc $(SRCPATH)/test_tuple_generator.cc $(SRCPATH)/emplace_partial_sorter.cc
+	$(CC) $(BINFLAGS) $(SRCPATH)/external_sorter.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/external_sorter
+	$(CC) $(BINFLAGS) $(SRCPATH)/test_tuple_generator.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/test_tuple_generator
 	$(CC) $(BINFLAGS) $(SRCPATH)/emplace_partial_sorter.cc $(LIBPATH)/libsorter.a -o $(BINPATH)/emplace_partial_sorter

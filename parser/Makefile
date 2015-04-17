@@ -23,10 +23,12 @@ DATAPATH := $(ROOT)/data
 
 GUTIL := $(PROOT)/util
 
-RICPLIB := $(ROOT)/ricp/src/libRICPlib.a
+COMPONENTS := $(PROOT)/components
+
+RICPLIB := $(ROOT)/ricp/build/src/libRICPlib.a
 
 deploy:
-	if [ ! -d $(LIBPATH) ]; \
+	@if [ ! -d $(LIBPATH) ]; \
 		then \
 			mkdir $(LIBPATH);  \
 			mkdir $(OBJPATH);  \
@@ -38,6 +40,8 @@ deploy:
 
 dependencies:
 	cd $(GUTIL) && $(MAKE) page.o && $(MAKE) libfilemanager.a
+	cd $(COMPONENTS) && $(MAKE) libindexer.a
+	cd $(ROOT)/ricp/build && cmake .. && $(MAKE)
 
 htmlEntities.o: $(UTILPATH)/htmlEntities.h $(UTILPATH)/htmlEntities.cc
 	$(CC) $(CFLAGS) $(UTILPATH)/htmlEntities.cc -o $(OBJPATH)/htmlEntities.o
@@ -48,8 +52,8 @@ libhtmlEntities.a: htmlEntities.o
 parser.o: $(ROOT)/parser.h $(ROOT)/parser.cc $(UTILPATH)/text_processing.h 
 	$(CC) $(CFLAGS) $(ROOT)/parser.cc -o $(OBJPATH)/parser.o
 
-libparser.a: dependencies parser.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o  
+libparser.a: dependencies parser.o libhtmlEntities.a
+	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o $(COMPONENTS)/obj/indexer.o
 
 vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
 	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o
@@ -58,8 +62,11 @@ libvocabulary.a: vocabulary.o
 	$(AR) $(ARFLAGS) $(LIBPATH)/libvocabulary.a $(OBJPATH)/vocabulary.o
 
 clean:
-	rm $(LIBPATH)/*.a
-	rm $(OBJPATH)/*.o
+	@rm -rf $(LIBPATH)
+	@rm -rf $(OBJPATH)
+	@rm -rf $(BINPATH)
+	@rm -rf $(DATAPATH)
+	@rm -rf $(ROOT)/ricp/build/*
 
-test: libparser.a libvocabulary.a
-	$(CC) $(BINFLAGS) $(SRCPATH)/collection_parser.cc $(RICPLIB) $(LIBPATH)/libparser.a $(LIBPATH)/libvocabulary.a $(LINKFLAGS) -o $(BINPATH)/parser
+bin: libparser.a libvocabulary.a $(SRCPATH)/collection_parser.cc 
+	$(CC) $(BINFLAGS) $(SRCPATH)/collection_parser.cc $(RICPLIB) $(LIBPATH)/libparser.a $(LIBPATH)/libvocabulary.a $(LINKFLAGS) -o $(BINPATH)/collection_parser

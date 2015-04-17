@@ -73,7 +73,7 @@ void FileManager::WriteTuple(const Tuple* tuple) {
 
 void FileManager::Index(const Tuple* tuple) {
   if(indexer_ == nullptr) {
-    indexer_.reset(new Indexer());
+    indexer_.reset(new components::Indexer());
   }
   indexer_->WriteTuple(tuple, output_file_);
 }

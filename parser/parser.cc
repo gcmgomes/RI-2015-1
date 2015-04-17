@@ -20,7 +20,7 @@ static void RemoveHeader(std::string& source) {
 
 void Parser::Convert(std::string& document) {
   RemoveHeader(document);
-  util::ConvertToUtf8(document);
+  ConvertToUtf8(document);
 }
 
 // Extract only the text from the tree rooted at |node|.
@@ -56,7 +56,7 @@ std::unique_ptr<::util::Page> Parser::Parse(
   text = ExtractText(output->root);
 
   // Remove all accents.
-  parsing::util::TreatText(text);
+  TreatText(text);
 
   std::unique_ptr<::util::Page> page(new ::util::Page(url, text));
 
@@ -82,6 +82,7 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page, unsigned 
       unsigned term_id = 0;
       if (!vocabulary_->CheckTerms(token)) {
         term_id = vocabulary_->InsertTerm(token);
+        vocabulary_->IncrementalBinaryTermDump(token, term_id);
       }
       else {
         term_id = vocabulary_->GetMappedValue(token);
@@ -104,4 +105,5 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page, unsigned 
 void Parser::DumpVocabulary(const std::string& file_path) {
   vocabulary_->DumpTerms(file_path);
 }
+
 }  // namespace parsing
