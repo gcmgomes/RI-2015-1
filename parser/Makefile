@@ -67,7 +67,7 @@ clean:
 	@rm -rf $(OBJPATH)
 	@rm -rf $(BINPATH)
 	@rm -rf $(DATAPATH)
-	@rm -rf $(ROOT)/ricp/build/*
+	@rm -rf $(ROOT)/ricp/build/
 
 bin: libparser.a libvocabulary.a $(SRCPATH)/collection_parser.cc 
 	$(CC) $(BINFLAGS) $(SRCPATH)/collection_parser.cc $(RICPLIB) $(LIBPATH)/libparser.a $(LIBPATH)/libvocabulary.a $(LINKFLAGS) -o $(BINPATH)/collection_parser

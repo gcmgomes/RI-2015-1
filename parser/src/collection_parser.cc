@@ -12,9 +12,9 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  if (argc < 6) {
+  if (argc < 7) {
     std::cout << argv[0] << " [input directory] [index file] [stop words file] "
-                            "[binary vocabulary dump file] [tuple file path]\n";
+                            "[binary vocabulary dump file] [textual vocabulary dump file] [tuple file path]\n";
     return 0;
   }
 
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     vocabulary->LoadStopWords(argv[3]);
     vocabulary->OpenBinaryIncrementalFile(argv[4]);
 
-  parsing::Parser parser(new ::util::FileManager(0, argv[5], argv[5]),
+  parsing::Parser parser(new ::util::FileManager(0, argv[6], argv[6]),
                          vocabulary.release());
 
   RICPNS::CollectionReader* reader =
@@ -47,5 +47,6 @@ int main(int argc, char** argv) {
     }
   }
   cout << endl;
+  parser.DumpVocabulary(argv[5]);
   delete reader;
 }

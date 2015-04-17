@@ -5,11 +5,9 @@
 #include <cctype>
 #include "query_processor.h"
 
-using namespace std;
 namespace components {
 
 QueryProcessor::QueryProcessor(const std::string& index_file_path) {
-std::ios_base::sync_with_stdio(false);
   index_file_.reset(new std::fstream());
   index_file_->open(index_file_path.c_str(),
                     std::fstream::in | std::fstream::binary);
@@ -70,6 +68,7 @@ static std::string TreatQuery(const std::string& query) {
 }
 
 static void ExtractSet(IndexEntry& entry, std::set<unsigned>& docs) {
+  docs.clear();
   auto i = entry.occurences().begin();
   while (i != entry.occurences().end()) {
     docs.insert(i->first);
@@ -109,9 +108,9 @@ std::set<unsigned> QueryProcessor::QueryIndex(const std::string& query) {
   IndexEntry entry;
   GetIndexEntry(token, entry);
   ExtractSet(entry, answer);
-
   while (i < parsable.size()) {
-    operation = parsable[i++];
+    operation = parsable[i];
+    i++;
     token.clear();
     while (i < parsable.size() && std::isalnum(parsable[i])) {
       token += parsable[i];

@@ -129,7 +129,7 @@ void Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
   while (doc_count) {
     unsigned doc_id = GetUnsignedFromBin(input_file.get());
     unsigned frequency = GetUnsignedFromBin(input_file.get());
-    entry.occurences_[doc_id].reserve(frequency);
+    entry.occurences_[doc_id].assign(frequency, 0);
     unsigned i = 0;
     while (frequency) {
       unsigned position = GetUnsignedFromBin(input_file.get());

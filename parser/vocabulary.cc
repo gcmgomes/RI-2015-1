@@ -10,7 +10,7 @@ Vocabulary::Vocabulary(unsigned expected_hash_size) {
 unsigned Vocabulary::InsertTerm(const std::string& key) {
   if (!CheckTerms(key) && !CheckStopWords(key)) {
     unsigned size = vocabulary_.size();
-    vocabulary_[key] = ++size;
+    vocabulary_[key] = size;
     return size;
   }
   return vocabulary_[key];
@@ -67,7 +67,7 @@ void Vocabulary::LoadTerms(const std::string& file_path) {
     unsigned position = 0;
     input_file >> key >> position;
     key.shrink_to_fit();
-    this->InsertTerm(key);
+    this->InsertTerm(key, position);
   }
 }
 
@@ -82,7 +82,6 @@ void Vocabulary::LoadBinaryTerms(
     const std::unordered_map<unsigned, unsigned>& bridge) {
   std::ifstream input_file;
   input_file.open(file_path.c_str(), std::ifstream::binary);
-  unsigned i = 0;
   while (!input_file.eof()) {
     unsigned char size = 0;
     unsigned value = 0;
@@ -97,11 +96,10 @@ void Vocabulary::LoadBinaryTerms(
 
     // Get stored value.
     input_file.read(reinterpret_cast<char*>(&value), sizeof(unsigned));
-    if (!bridge.empty() && bridge.count(i)) {
-      value = bridge.at(i);
+    if (!bridge.empty() && bridge.count(value)) {
+      value = bridge.at(value);
     }
     this->InsertTerm(key, value);
-    i++;
   }
 }
 
