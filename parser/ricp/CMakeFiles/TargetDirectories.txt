@@ -1,3 +1,0 @@
-/home/gcmgomes/RI-2015-1/parser/ricp/src/CMakeFiles/RICPlib.dir
-/home/gcmgomes/RI-2015-1/parser/ricp/test/CMakeFiles/ircpReader.dir
-/home/gcmgomes/RI-2015-1/parser/ricp/test/CMakeFiles/ircpWriter.dir
