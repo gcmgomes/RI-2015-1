@@ -34,6 +34,7 @@ deploy:
 			mkdir $(OBJPATH);  \
 			mkdir $(BINPATH);  \
 			mkdir $(DATAPATH); \
+			mkdir $(ROOT)/ricp/build; \
 		else \
 			echo "Directories exist"; \
 	fi
