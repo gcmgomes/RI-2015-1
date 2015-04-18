@@ -1,4 +1,3 @@
 Parsing: 			50m44.428s	47m24.048s 48m38.473s
-EmplaceSorting:		 3m12.586s	 3m16.452s  3m25.759s
-Merge: 				32m55.127s	31m05.532s 30m62.011s
-Total:				86m51.141s  81m46.032s 
+Emplace:		  03m12.586s	 3m16.452s  3m25.759s
+SeekMerge:  	32m55.127s	31m05.532s 30m62.011s
