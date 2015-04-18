@@ -7,7 +7,7 @@
 namespace util {
 
 unsigned Tuple::OptimalRunCount(unsigned memory_limit, unsigned total_tuples, bool verbose) {
-  // If limit < 2MB we can't do a whole lot, so just force the limit higher.
+  // If limit < 2MB we can't do a whole lot with large collections, so just force the limit higher.
   if(memory_limit < 2000000) {
     memory_limit = 2000000;
     if(verbose) {
