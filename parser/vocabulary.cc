@@ -62,7 +62,7 @@ void Vocabulary::DumpTerms(const std::string& file_path) {
 void Vocabulary::LoadTerms(const std::string& file_path) {
   std::ifstream input_file;
   input_file.open(file_path.c_str(), std::ifstream::in);
-  while (!input_file.eof()) {
+  while (!input_file.eof() && input_file.peek() != EOF) {
     std::string key = "";
     unsigned position = 0;
     input_file >> key >> position;
@@ -82,7 +82,7 @@ void Vocabulary::LoadBinaryTerms(
     const std::unordered_map<unsigned, unsigned>& bridge) {
   std::ifstream input_file;
   input_file.open(file_path.c_str(), std::ifstream::binary);
-  while (!input_file.eof()) {
+  while (!input_file.eof() && input_file.peek() != EOF) {
     unsigned char size = 0;
     unsigned value = 0;
     // Get key length.
