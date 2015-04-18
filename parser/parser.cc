@@ -82,7 +82,6 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page, unsigned 
       unsigned term_id = 0;
       if (!vocabulary_->CheckTerms(token)) {
         term_id = vocabulary_->InsertTerm(token);
-        vocabulary_->IncrementalBinaryTermDump(token, term_id);
       }
       else {
         term_id = vocabulary_->GetMappedValue(token);

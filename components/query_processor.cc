@@ -26,7 +26,7 @@ void QueryProcessor::BuildBridge(const std::string& vocabulary_path) {
   index_file_->seekg(0, index_file_->beg);
   // Initialize the vocabulary with just enough buckets to fit every term.
   vocabulary_.reset(new parsing::Vocabulary(bridge_.size()));
-  vocabulary_->LoadBinaryTerms(vocabulary_path, bridge_);
+  vocabulary_->LoadTerms(vocabulary_path, bridge_);
   bridge_.clear();
 }
 

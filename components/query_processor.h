@@ -15,7 +15,6 @@ namespace components {
 
 class QueryProcessor {
  public:
-  // Takes ownership of |vocabulary|.
   QueryProcessor(const std::string& index_file_path);
 
   // Contructs the temporary bridge between the index file and |vocabulary_|.

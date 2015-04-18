@@ -6,8 +6,8 @@ collection=$1
 collection_index=$2
 
 # Parse the collection.
-echo "collection_parser $1 $2 parser/stop_words.txt data/terms.bin data/terms.txt data/tuples.bin"
-${ROOTDIR}/parser/bin/collection_parser $1 $2 parser/stop_words.txt data/terms.bin data/terms.txt data/tuples.bin
+echo "collection_parser $1 $2 parser/stop_words.txt data/terms.txt data/tuples.bin"
+${ROOTDIR}/parser/bin/collection_parser $1 $2 parser/stop_words.txt data/terms.txt data/tuples.bin
 
 # Get optimal number of runs.
 echo "optimal_run_counter data/tuples.bin 40000000"

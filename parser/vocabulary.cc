@@ -30,25 +30,6 @@ unsigned Vocabulary::GetMappedValue(const std::string& key) {
   return vocabulary_[key];
 }
 
-void Vocabulary::OpenBinaryIncrementalFile(const std::string& file_path) {
-  output_file_.open(file_path.c_str(),
-                    std::fstream::binary | std::fstream::out);
-}
-
-void Vocabulary::IncrementalBinaryTermDump(const std::string& key,
-                                           unsigned value) {
-  // If we don't have an output file, we can't write to it.
-  if (!output_file_.is_open()) {
-    return;
-  }
-  // making it a char saves 3 bytes per term. 1000000 terms -> -3MB.
-  unsigned char size = key.size();
-  output_file_.write(reinterpret_cast<const char*>(&size),
-                     sizeof(unsigned char));
-  output_file_.write(key.c_str(), size);
-  output_file_.write(reinterpret_cast<const char*>(&value), sizeof(unsigned));
-}
-
 void Vocabulary::DumpTerms(const std::string& file_path) {
   std::ofstream output_file;
   output_file.open(file_path.c_str(), std::ofstream::out);
@@ -59,47 +40,32 @@ void Vocabulary::DumpTerms(const std::string& file_path) {
   }
 }
 
-void Vocabulary::LoadTerms(const std::string& file_path) {
+void Vocabulary::LoadTerms(
+    const std::string& file_path,
+    const std::unordered_map<unsigned, unsigned>& bridge) {
   std::ifstream input_file;
   input_file.open(file_path.c_str(), std::ifstream::in);
   while (!input_file.eof() && input_file.peek() != EOF) {
     std::string key = "";
     unsigned position = 0;
     input_file >> key >> position;
+    if(input_file.eof()) {
+      break;
+    }
     key.shrink_to_fit();
+    if(!bridge.empty() && bridge.count(position)) {
+      position = bridge.at(position);
+    }
     this->InsertTerm(key, position);
   }
+  using namespace std;
+  cout << "Bridge: " << bridge.size() << endl;
+  cout << "Vocab:  " << vocabulary_.size() << endl;
 }
 
 void Vocabulary::InsertStopWord(const std::string& key) {
   if (!CheckStopWords(key)) {
     stop_words_.insert(key);
-  }
-}
-
-void Vocabulary::LoadBinaryTerms(
-    const std::string& file_path,
-    const std::unordered_map<unsigned, unsigned>& bridge) {
-  std::ifstream input_file;
-  input_file.open(file_path.c_str(), std::ifstream::binary);
-  while (!input_file.eof() && input_file.peek() != EOF) {
-    unsigned char size = 0;
-    unsigned value = 0;
-    // Get key length.
-    input_file.read(reinterpret_cast<char*>(&size), sizeof(unsigned char));
-
-    std::string key((unsigned)size, 0);
-
-    // Get key itself.
-    input_file.read(reinterpret_cast<char*>(&key[0]), size * sizeof(char));
-    key.shrink_to_fit();
-
-    // Get stored value.
-    input_file.read(reinterpret_cast<char*>(&value), sizeof(unsigned));
-    if (!bridge.empty() && bridge.count(value)) {
-      value = bridge.at(value);
-    }
-    this->InsertTerm(key, value);
   }
 }
 
