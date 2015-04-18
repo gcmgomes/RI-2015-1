@@ -16,18 +16,18 @@ class IndexEntry {
   IndexEntry() {
     term_ = 0;
   }
-  unsigned term() {
+  unsigned term() const {
     return term_;
   };
-  const std::map<unsigned, std::vector<unsigned> >& occurences() {
-    return occurences_;
+  const std::map<unsigned, std::vector<unsigned> >& occurrences() const {
+    return occurrences_;
   };
 
   std::string ToString() {
     std::stringstream str;
-    str << term_ << " | " << occurences_.size() << " {";
-    auto i = occurences_.begin();
-    while(i != occurences_.end()) {
+    str << term_ << " | " << occurrences_.size() << " {";
+    auto i = occurrences_.begin();
+    while(i != occurrences_.end()) {
       str << "[" << i->first << ", " << i->second.size() << "(";
       auto j = i->second.begin();
       str << *j;
@@ -39,7 +39,7 @@ class IndexEntry {
       }
       str << ")]";
       ++i;
-      if(i != occurences_.end()) {
+      if(i != occurrences_.end()) {
         str << ", ";
       }
     }
@@ -50,7 +50,7 @@ class IndexEntry {
  private:
   unsigned term_;
   // This is a mapping document_id -> position_vector.
-  std::map<unsigned, std::vector<unsigned> > occurences_;
+  std::map<unsigned, std::vector<unsigned> > occurrences_;
 };
 }  // namespace components
 

@@ -10,16 +10,6 @@
 
 namespace components {
 
-struct IndexMetadata {
-  IndexMetadata(unsigned term_, unsigned document_, unsigned document_count_,
-                std::streampos document_count_file_position_);
-
-  unsigned term;
-  unsigned document;
-  unsigned document_count;
-  std::streampos document_count_file_position;
-};
-
 class Indexer {
  public:
   Indexer();
@@ -37,14 +27,14 @@ class Indexer {
   static void GetNextEntry(std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry);
 
+  static void WriteEntry(std::unique_ptr<std::fstream>& output_file,
+                         const IndexEntry* entry);
+
  private:
   // Writes the header for the current index entry.
-  void WriteTermHeader(const util::Tuple* tuple, std::unique_ptr<std::fstream>& file);
+  void EntryHeader(const util::Tuple* tuple);
 
-  // Updates the |document_count| of the current index entry.
-  void UpdateDocumentCount(std::unique_ptr<std::fstream>& file);
-
-  std::unique_ptr<IndexMetadata> index_metadata_;
+  std::unique_ptr<IndexEntry> current_index_entry_;
 };
 
 }  // namespace components

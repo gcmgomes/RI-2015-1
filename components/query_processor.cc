@@ -69,8 +69,8 @@ static std::string TreatQuery(const std::string& query) {
 
 static void ExtractSet(IndexEntry& entry, std::set<unsigned>& docs) {
   docs.clear();
-  auto i = entry.occurences().begin();
-  while (i != entry.occurences().end()) {
+  auto i = entry.occurrences().begin();
+  while (i != entry.occurrences().end()) {
     docs.insert(i->first);
     ++i;
   }
