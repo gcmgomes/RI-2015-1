@@ -1,5 +1,5 @@
 CC := g++
-BINFLAGS := -std=c++11 -Wall -g
+BINFLAGS := -std=c++11 -Wall -O3
 CFLAGS := $(BINFLAGS) -c
 
 AR := ar
