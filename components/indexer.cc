@@ -9,7 +9,7 @@ namespace components {
 
 IndexMetadata::IndexMetadata(unsigned term_, unsigned document_,
                              unsigned document_count_,
-                             unsigned document_count_file_position_)
+                             std::streampos document_count_file_position_)
     : term(term_), document(document_), document_count(document_count_),
       document_count_file_position(document_count_file_position_){};
 
@@ -27,7 +27,7 @@ void Indexer::WriteTermHeader(const util::Tuple* tuple,
   file->write(reinterpret_cast<const char*>(&tuple->term), sizeof(unsigned));
 
   // Save where we will need to seek to overwrite |document_count| later on.
-  index_metadata_->document_count_file_position = (unsigned)file->tellp();
+  index_metadata_->document_count_file_position = file->tellp();
   file->write(reinterpret_cast<const char*>(&zero), sizeof(unsigned));
   file->write(reinterpret_cast<const char*>(&tuple->document),
               sizeof(unsigned));

@@ -186,11 +186,11 @@ void FileManager::InputFileInitialization(unsigned file_id) {
 }
 
 bool FileManager::CloseForInput(unsigned file_id) {
-  unsigned next_block_start_point =
+  std::streampos next_block_start_point =
       input_tuples_per_block_ * (file_id + 1) * 4 * sizeof(unsigned);
   std::unique_ptr<std::fstream>& file = input_files_[file_id];
   return file->peek() == EOF || file->eof() ||
-         ((unsigned)file->tellg() == next_block_start_point);
+         (file->tellg() == next_block_start_point);
 }
 
 }  // namespace util

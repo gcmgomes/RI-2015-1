@@ -12,12 +12,12 @@ namespace components {
 
 struct IndexMetadata {
   IndexMetadata(unsigned term_, unsigned document_, unsigned document_count_,
-                unsigned document_count_file_position_);
+                std::streampos document_count_file_position_);
 
   unsigned term;
   unsigned document;
   unsigned document_count;
-  unsigned document_count_file_position;
+  std::streampos document_count_file_position;
 };
 
 class Indexer {
