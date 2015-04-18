@@ -13,7 +13,6 @@ COMPONENTS := $(ROOT)/components
 make: clean deploy bin
 
 clean:
-	@rm -rf $(DATA);
 	cd $(UTIL) && $(MAKE) clean;
 	cd $(EXTERNALSORTER) && $(MAKE) clean;
 	cd $(PARSER) && $(MAKE) clean;
