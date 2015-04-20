@@ -45,6 +45,7 @@ libsorter.a: sorter.o dependencies
 	$(AR) $(ARFLAGS) $(LIBPATH)/libsorter.a $(UTIL)/obj/tuple.o \
 																					$(UTIL)/obj/file_manager.o \
 																					$(COMPONENTS)/obj/indexer.o \
+																					$(COMPONENTS)/obj/compressor.o \
 																					$(OBJPATH)/sorter.o
 
 clean:

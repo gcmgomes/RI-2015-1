@@ -54,7 +54,7 @@ parser.o: $(ROOT)/parser.h $(ROOT)/parser.cc $(UTILPATH)/text_processing.h
 	$(CC) $(CFLAGS) $(ROOT)/parser.cc -o $(OBJPATH)/parser.o
 
 libparser.a: dependencies parser.o libhtmlEntities.a
-	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o $(COMPONENTS)/obj/indexer.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o $(COMPONENTS)/obj/indexer.o	$(COMPONENTS)/obj/compressor.o
 
 vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
 	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o

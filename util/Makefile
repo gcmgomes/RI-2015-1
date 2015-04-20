@@ -44,7 +44,7 @@ file_manager.o: libtuple.a $(ROOT)/file_manager.h $(ROOT)/file_manager.cc
 	$(CC) $(CFLAGS) $(ROOT)/file_manager.cc -o $(OBJPATH)/file_manager.o
 
 libfilemanager.a: file_manager.o dependencies
-	$(AR) $(ARFLAGS) $(LIBPATH)/libfilemanager.a $(OBJPATH)/file_manager.o $(OBJPATH)/tuple.o $(COMPONENTS)/obj/indexer.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libfilemanager.a $(OBJPATH)/file_manager.o $(OBJPATH)/tuple.o $(COMPONENTS)/obj/indexer.o $(COMPONENTS)/obj/compressor.o
 
 page.o: $(ROOT)/page.h $(ROOT)/page.cc
 	$(CC) $(CFLAGS) $(ROOT)/page.cc -o $(OBJPATH)/page.o

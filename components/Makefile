@@ -40,14 +40,20 @@ dependencies:
 indexer.o: $(ROOT)/indexer.h $(ROOT)/indexer.cc
 	$(CC) $(CFLAGS) $(ROOT)/indexer.cc -o $(OBJPATH)/indexer.o
 
-libindexer.a: dependencies indexer.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libindexer.a $(OBJPATH)/indexer.o $(UTIL)/obj/tuple.o
+libindexer.a: dependencies indexer.o compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libindexer.a $(OBJPATH)/indexer.o $(UTIL)/obj/tuple.o $(OBJPATH)/compressor.o
 
 query_processor.o: $(ROOT)/query_processor.h $(ROOT)/query_processor.cc
 	$(CC) $(CFLAGS) $(ROOT)/query_processor.cc -o $(OBJPATH)/query_processor.o
 
-libqueryprocessor.a: dependencies query_processor.o indexer.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libqueryprocessor.a $(OBJPATH)/query_processor.o $(UTIL)/obj/tuple.o $(PARSER)/obj/vocabulary.o $(OBJPATH)/indexer.o
+libqueryprocessor.a: dependencies query_processor.o indexer.o compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libqueryprocessor.a $(OBJPATH)/query_processor.o $(UTIL)/obj/tuple.o $(PARSER)/obj/vocabulary.o $(OBJPATH)/indexer.o $(OBJPATH)/compressor.o
+
+compressor.o: $(ROOT)/compressor.h $(ROOT)/compressor.cc
+	$(CC) $(CFLAGS) $(ROOT)/compressor.cc -o $(OBJPATH)/compressor.o
+
+libcompressor.a: compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libcompressor.a $(OBJPATH)/compressor.o
 
 clean:
 	@rm -rf $(LIBPATH)
@@ -55,5 +61,6 @@ clean:
 	@rm -rf $(BINPATH)
 	@rm -rf $(DATAPATH)
 
-bin: libqueryprocessor.a  $(SRCPATH)/query_index.cc
+bin: libqueryprocessor.a $(SRCPATH)/query_index.cc libcompressor.a $(SRCPATH)/compressor.cc
 	$(CC) $(BINFLAGS) $(SRCPATH)/query_index.cc $(LIBPATH)/libqueryprocessor.a -o $(BINPATH)/query_index
+	$(CC) $(BINFLAGS) $(SRCPATH)/compressor.cc $(LIBPATH)/libcompressor.a -o $(BINPATH)/compressor
