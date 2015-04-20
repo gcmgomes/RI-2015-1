@@ -7,8 +7,7 @@
 
 namespace components {
 
-std::unique_ptr<Compressor> Indexer::compressor_ = nullptr;
-unsigned Indexer::frequency_compression_threshold = 1;
+Compressor Indexer::compressor_ = Compressor();
 
 IndexMetadata::IndexMetadata(unsigned term_, unsigned document_,
                              unsigned document_count_,
@@ -18,12 +17,7 @@ IndexMetadata::IndexMetadata(unsigned term_, unsigned document_,
       original_positions_size(0), compressed_positions_size(0),
       immutable_size(0){};
 
-Indexer::Indexer() : Indexer(new Compressor()){};
-
-Indexer::Indexer(Compressor* compressor) {
-  Indexer::compressor_.reset(compressor);
-  this->index_metadata_.reset(nullptr);
-}
+Indexer::Indexer() : index_metadata_(nullptr){};
 
 void Indexer::WriteTermHeader(const util::Tuple* tuple,
                               std::unique_ptr<std::fstream>& file) {
@@ -38,6 +32,7 @@ void Indexer::WriteTermHeader(const util::Tuple* tuple,
     compressed_positions = index_metadata_->compressed_positions_size;
     immutable = index_metadata_->immutable_size;
   }
+
   index_metadata_.reset(new IndexMetadata(tuple->term, tuple->document, 1, 0));
 
   index_metadata_->original_positions_size = original_positions;
@@ -51,29 +46,38 @@ void Indexer::WriteTermHeader(const util::Tuple* tuple,
   index_metadata_->document_count_file_position = file->tellp();
   file->write(reinterpret_cast<const char*>(&zero), sizeof(unsigned));
 
-  file->write(reinterpret_cast<const char*>(&tuple->document),
-              sizeof(unsigned));
-
-  file->write(reinterpret_cast<const char*>(&tuple->frequency),
-              sizeof(unsigned));
-
-  // Update the size required for the header information.
-  index_metadata_->immutable_size = immutable + (4 * sizeof(unsigned));
+  // Update the size required for the header information.i
+  index_metadata_->immutable_size = immutable + (1 * sizeof(unsigned));
 }
 
 void Indexer::WritePositions(std::unique_ptr<std::fstream>& file) {
-  // If we don't use compression, the increase is just for the positions
-  // themselves
-  index_metadata_->original_positions_size +=
+  // If we don't use compression, the increase is due to the positions
+  // themselves.
+  int frequency = index_metadata_->current_document_positions.size();
+
+  index_metadata_->original_positions_size += frequency * sizeof(unsigned);
+
+  // Write document header information.
+  file->write(reinterpret_cast<const char*>(&index_metadata_->document),
+              sizeof(unsigned));
+
+  // We have to update the byte count needed for these writes.
+  index_metadata_->immutable_size += 2 * sizeof(unsigned);
+
+  // We have to compress to see if we can save up some space.
+  std::string encoded_positions = "";
+  compressor_.Encode(index_metadata_->current_document_positions,
+                     encoded_positions);
+
+  unsigned encoded_size = encoded_positions.size() + sizeof(unsigned);
+  unsigned standard_size =
       index_metadata_->current_document_positions.size() * sizeof(unsigned);
-  // If we are using a compressor, write to the index using it.
-  if (compressor_ != nullptr &&
-      index_metadata_->current_document_positions.size() >
-          Indexer::frequency_compression_threshold) {
-    // We have to compress it to save up some space.
-    std::string encoded_positions = "";
-    compressor_->Encode(index_metadata_->current_document_positions,
-                        encoded_positions);
+
+  // If compression is worth it, do it!
+  if (encoded_size < standard_size) {
+    // We use a negative frequency to mark a compressed positional list.
+    frequency = -frequency;
+    file->write(reinterpret_cast<const char*>(&frequency), sizeof(int));
 
     // Write the bytes used to store the encoded positions.
     unsigned size = encoded_positions.size();
@@ -86,8 +90,10 @@ void Indexer::WritePositions(std::unique_ptr<std::fstream>& file) {
     // We have to write the byte count for the encoded positions as well.
     index_metadata_->compressed_positions_size +=
         encoded_positions.size() * sizeof(char) + sizeof(unsigned);
-  } else {
-    unsigned frequency = index_metadata_->current_document_positions.size();
+  }
+  // Otherwise just write them as if compression never happened.
+  else {
+    file->write(reinterpret_cast<const char*>(&frequency), sizeof(int));
     file->write(reinterpret_cast<const char*>(
                     &index_metadata_->current_document_positions[0]),
                 frequency * sizeof(unsigned));
@@ -130,14 +136,6 @@ void Indexer::WriteTuple(const util::Tuple* tuple,
 
     index_metadata_->document = tuple->document;
     index_metadata_->document_count++;
-
-    // Write document header information.
-    file->write(reinterpret_cast<const char*>(&tuple->document),
-                sizeof(unsigned));
-    file->write(reinterpret_cast<const char*>(&tuple->frequency),
-                sizeof(unsigned));
-    // We have to update the byte count neede for this write.
-    index_metadata_->immutable_size += 2 * sizeof(unsigned);
   }
 
   index_metadata_->current_document_positions.push_back(tuple->position);
@@ -178,12 +176,18 @@ void Indexer::ConvertIndexToText(const std::string& binary_input_file_path,
 }
 
 void Indexer::GetPositionVector(std::unique_ptr<std::fstream>& file,
-                                unsigned frequency,
                                 std::vector<unsigned>& positions) {
   positions.clear();
-  // We have a compressor available, use it to decompress!
-  if (compressor_ != nullptr &&
-      frequency > Indexer::frequency_compression_threshold) {
+  int frequency = 0;
+  bool decompress = false;
+  file->read(reinterpret_cast<char*>(&frequency), sizeof(int));
+  if (frequency < 0) {
+    decompress = true;
+    frequency = -frequency;
+  }
+
+  // We have found ourselves a compressed list. Decompress it!
+  if (decompress) {
     // Read the bytes used to store the encoded positions.
     unsigned size = 0;
     file->read(reinterpret_cast<char*>(&size), sizeof(unsigned));
@@ -193,8 +197,10 @@ void Indexer::GetPositionVector(std::unique_ptr<std::fstream>& file,
     file->read(reinterpret_cast<char*>(&encoded_positions[0]),
                size * sizeof(char));
     // We have to decompress it to get the original vector.
-    compressor_->Decode(frequency, encoded_positions, positions);
-  } else {
+    compressor_.Decode(frequency, encoded_positions, positions);
+  }
+  // The positions are regularly stored, just read them.
+  else {
     positions.assign(frequency, 0);
     file->read(reinterpret_cast<char*>(&positions[0]),
                frequency * sizeof(unsigned));
@@ -208,9 +214,8 @@ void Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
   unsigned doc_count = GetUnsignedFromBin(input_file.get());
   while (doc_count) {
     unsigned doc_id = GetUnsignedFromBin(input_file.get());
-    unsigned frequency = GetUnsignedFromBin(input_file.get());
     entry.occurrences_[doc_id] = std::vector<unsigned>();
-    GetPositionVector(input_file, frequency, entry.occurrences_[doc_id]);
+    GetPositionVector(input_file, entry.occurrences_[doc_id]);
     doc_count--;
   }
 }

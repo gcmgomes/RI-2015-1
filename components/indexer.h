@@ -28,9 +28,6 @@ class Indexer {
  public:
   Indexer();
 
-  // Takes ownership of compressor.
-  Indexer(Compressor* compressor);
-
   // Writes |tuple| to |file| in index format.
   void WriteTuple(const util::Tuple* tuple,
                   std::unique_ptr<std::fstream>& file);
@@ -46,8 +43,6 @@ class Indexer {
   static void GetNextEntry(std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry);
 
-  static unsigned frequency_compression_threshold;
-
  private:
   // Writes the header for the current index entry.
   void WriteTermHeader(const util::Tuple* tuple,
@@ -58,12 +53,12 @@ class Indexer {
 
   // Loads the position vector from |file| and stores it in |positions|.
   static void GetPositionVector(std::unique_ptr<std::fstream>& file,
-                         unsigned frequency, std::vector<unsigned>& positions);
+                                std::vector<unsigned>& positions);
 
   // Updates the |document_count| of the current index entry.
   void UpdateDocumentCount(std::unique_ptr<std::fstream>& file);
 
-  static std::unique_ptr<Compressor> compressor_;
+  static Compressor compressor_;
 
   std::unique_ptr<IndexMetadata> index_metadata_;
 };
