@@ -1,5 +1,7 @@
-Immutable size      1385443352
+Immutable 1385443352
+
 Threshold			Size
+Original  1326069572
 0					1246622195
 1					 946286577
 2					 955810421
@@ -13,5 +15,7 @@ Threshold			Size
 10					1096763822
 Optimal				 944019566
 
-Default disk space:
+Default disk space: 2711512924
 Minimum disk space: 2329462918
+Naive Ratio: 85.9%
+Real  Ratio: 71,2%
