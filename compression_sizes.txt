@@ -1,21 +1,9 @@
-Immutable 1385443352
+Immutable:  1418143492
+Positions:  1158091660
+Compressed:	 933876016
 
-Threshold			Size
-Original  1326069572
-0					1246622195
-1					 946286577
-2					 955810421
-3					 980417377
-4					1005282666
-5					1025626293
-6
-7
-8
-9
-10					1096763822
-Optimal				 944019566
+Default disk space: 2576235152
+Minimum disk space: 2352019508
 
-Default disk space: 2711512924
-Minimum disk space: 2329462918
-Naive Ratio: 85.9%
-Real  Ratio: 71,2%
+Naive Ratio: 91.3%
+Real  Ratio: 80.6%
