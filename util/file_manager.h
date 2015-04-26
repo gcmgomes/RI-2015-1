@@ -14,7 +14,6 @@ namespace util {
 
 class FileManager {
  public:
-  // Input files are of the form |file_prefix|+[0, |file_count|).
   FileManager(unsigned file_count, std::string file_prefix,
               std::string output_file_path);
 
