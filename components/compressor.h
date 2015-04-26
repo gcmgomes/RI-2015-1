@@ -9,7 +9,7 @@ namespace components {
 
 class Compressor {
  public:
-  void Encode(std::vector<unsigned>& numbers, std::string& encoding);
+  void Encode(const std::vector<unsigned>& positions, std::string& encoding);
   void Decode(unsigned numbers_count, std::string& encoding,
               std::vector<unsigned>& numbers);
 

@@ -91,6 +91,15 @@ static void Union(std::set<unsigned>& answer, const std::set<unsigned>& other) {
   answer = real_answer;
 }
 
+static void GetToken(const std::string& parsable, unsigned& pos,
+                     std::string& token) {
+  token.clear();
+  while (pos < parsable.size() && std::isalnum(parsable[pos])) {
+    token += parsable[pos];
+    pos++;
+  }
+}
+
 std::set<unsigned> QueryProcessor::QueryIndex(const std::string& query) {
   std::string parsable = TreatQuery(query);
   unsigned i = 0;
@@ -99,11 +108,7 @@ std::set<unsigned> QueryProcessor::QueryIndex(const std::string& query) {
 
   // Get the first word.
   std::string token = "";
-  while (i < parsable.size() && std::isalnum(parsable[i])) {
-    token += parsable[i];
-    i++;
-  }
-
+  GetToken(parsable, i, token);
   // Get it's documents.
   IndexEntry entry;
   GetIndexEntry(token, entry);
@@ -111,11 +116,7 @@ std::set<unsigned> QueryProcessor::QueryIndex(const std::string& query) {
   while (i < parsable.size()) {
     operation = parsable[i];
     i++;
-    token.clear();
-    while (i < parsable.size() && std::isalnum(parsable[i])) {
-      token += parsable[i];
-      i++;
-    }
+    GetToken(parsable, i, token);
     IndexEntry entry;
     GetIndexEntry(token, entry);
     ExtractSet(entry, other);

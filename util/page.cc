@@ -13,13 +13,6 @@ std::string Page::GetNextTokenFromText(unsigned& starting_position) const {
       if (!token.empty()) {
         return token;
       }
-    } else if (isdigit(c)) {
-      if (!token.empty()) {
-        return token;
-      }
-      token += c;
-      starting_position++;
-      return token;
     } else {
       token += c;
     }

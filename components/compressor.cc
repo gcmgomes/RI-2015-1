@@ -2,7 +2,8 @@
 
 namespace components {
 
-void Compressor::Encode(std::vector<unsigned>& numbers, std::string& encoding) {
+void Compressor::Encode(const std::vector<unsigned>& positions, std::string& encoding) {
+  std::vector<unsigned> numbers(positions.begin(), positions.end());
   unsigned i = numbers.size() - 1;
   // Compress distances instead of positions.
   while (i) {
@@ -17,6 +18,7 @@ void Compressor::Encode(std::vector<unsigned>& numbers, std::string& encoding) {
     EliasGammaEncoding(numbers[i], initial_encoding);
     i++;
   }
+  numbers.clear();
   i = 0;
   encoding.clear();
   while (i < initial_encoding.size()) {
