@@ -1,0 +1,17 @@
+Immutable size      1385443352
+Threshold			Size
+0					1246622195
+1					 946286577
+2					 955810421
+3					 980417377
+4					1005282666
+5					1025626293
+6
+7
+8
+9
+10					1096763822
+Optimal				 944019566
+
+Default disk space:
+Minimum disk space: 2329462918
