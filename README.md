@@ -1,5 +1,11 @@
 # RI-2015-1
 //--------------------------
+Restrições
+//--------------------------
+A única restrição (temporária), é que o caminho para o diretório que contem esse
+trabalho não possua nenhum espaço em branco.
+
+//--------------------------
 Geração de binários
 //--------------------------
 
