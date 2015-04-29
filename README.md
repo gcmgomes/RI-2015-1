@@ -1,7 +1,14 @@
 # RI-2015-1
 //--------------------------
-Geração de binários
+Restrições
+--------------------------//
+
+A única restrição (temporária), é que o caminho para o diretório que contem esse
+trabalho não possua nenhum espaço em branco.
+
 //--------------------------
+Geração de binários
+--------------------------//
 
 Para poder gerar os binários necessários para a execução do trabalho, é
 necessário que a biblioteca Gumbo, disponível em
@@ -18,7 +25,7 @@ e todos os arquivos necessários serão automaticamente gerados.
 
 //--------------------------
 Execução
-//--------------------------
+--------------------------//
 
 Para poder gerar o índice invertido, basta executar o comando
 
