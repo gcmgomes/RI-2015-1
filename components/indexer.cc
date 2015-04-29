@@ -13,6 +13,7 @@ IndexMetadata::IndexMetadata(unsigned term_, unsigned document_,
                              unsigned document_count_,
                              std::streampos document_count_file_position_)
     : term(term_), document(document_), document_count(document_count_),
+      total_frequency(0),
       document_count_file_position(document_count_file_position_),
       original_positions_size(0), compressed_positions_size(0),
       immutable_size(0){};
@@ -46,6 +47,9 @@ void Indexer::WriteTermHeader(const util::Tuple* tuple,
   index_metadata_->document_count_file_position = file->tellp();
   file->write(reinterpret_cast<const char*>(&zero), sizeof(unsigned));
 
+  // Save where we will need to seekp to overwrite |total_frequency| later on.
+  file->write(reinterpret_cast<const char*>(&zero), sizeof(unsigned));
+
   // Update the size required for the header information.i
   index_metadata_->immutable_size = immutable + (1 * sizeof(unsigned));
 }
@@ -54,6 +58,7 @@ void Indexer::WritePositions(std::unique_ptr<std::fstream>& file) {
   // If we don't use compression, the increase is due to the positions
   // themselves.
   int frequency = index_metadata_->current_document_positions.size();
+  index_metadata_->total_frequency += (unsigned) frequency;
 
   index_metadata_->original_positions_size += frequency * sizeof(unsigned);
 
@@ -102,7 +107,7 @@ void Indexer::WritePositions(std::unique_ptr<std::fstream>& file) {
   index_metadata_->current_document_positions.clear();
 }
 
-void Indexer::UpdateDocumentCount(std::unique_ptr<std::fstream>& file) {
+void Indexer::UpdateMetadata(std::unique_ptr<std::fstream>& file) {
   // We have to write the position vector to |file|
   WritePositions(file);
 
@@ -110,8 +115,14 @@ void Indexer::UpdateDocumentCount(std::unique_ptr<std::fstream>& file) {
   unsigned current_pos = file->tellp();
 
   file->seekp(index_metadata_->document_count_file_position);
+  // Write document count.
   file->write(reinterpret_cast<const char*>(&index_metadata_->document_count),
               sizeof(unsigned));
+
+  // Write total collection frequency.
+  file->write(reinterpret_cast<const char*>(&index_metadata_->total_frequency),
+              sizeof(unsigned));
+
   // Return to EOF.
   file->seekp(current_pos);
 }
@@ -125,7 +136,7 @@ void Indexer::WriteTuple(const util::Tuple* tuple,
   // If we find a different term, we have to wrap up |document_count| in the
   // file  and rebuild the metadata.
   if (tuple->term != index_metadata_->term) {
-    UpdateDocumentCount(file);
+    UpdateMetadata(file);
     WriteTermHeader(tuple, file);
   }
 
@@ -143,7 +154,7 @@ void Indexer::WriteTuple(const util::Tuple* tuple,
 
 void Indexer::FinishIndex(std::unique_ptr<std::fstream>& file) {
   if (index_metadata_ != nullptr) {
-    UpdateDocumentCount(file);
+    UpdateMetadata(file);
     std::cout << "Immutable needed data:     "
               << index_metadata_->immutable_size << std::endl;
     std::cout << "Original Positions Size:   "
@@ -212,6 +223,7 @@ void Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
   entry.term_ = GetUnsignedFromBin(input_file.get());
   entry.occurrences_.clear();
   unsigned doc_count = GetUnsignedFromBin(input_file.get());
+  entry.total_frequency_ = GetUnsignedFromBin(input_file.get());
   while (doc_count) {
     unsigned doc_id = GetUnsignedFromBin(input_file.get());
     entry.occurrences_[doc_id] = std::vector<unsigned>();

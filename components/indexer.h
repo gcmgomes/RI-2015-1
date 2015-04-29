@@ -17,6 +17,7 @@ struct IndexMetadata {
   unsigned term;
   unsigned document;
   unsigned document_count;
+  unsigned total_frequency;
   std::vector<unsigned> current_document_positions;
   std::streampos document_count_file_position;
   unsigned long long original_positions_size;
@@ -56,7 +57,7 @@ class Indexer {
                                 std::vector<unsigned>& positions);
 
   // Updates the |document_count| of the current index entry.
-  void UpdateDocumentCount(std::unique_ptr<std::fstream>& file);
+  void UpdateMetadata(std::unique_ptr<std::fstream>& file);
 
   static Compressor compressor_;
 

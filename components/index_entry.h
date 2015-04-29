@@ -25,7 +25,7 @@ class IndexEntry {
 
   std::string ToString() {
     std::stringstream str;
-    str << term_ << " | " << occurrences_.size() << " {";
+    str << term_ << " | (" << total_frequency_ << ") " << occurrences_.size() << " {";
     auto i = occurrences_.begin();
     while(i != occurrences_.end()) {
       str << "[" << i->first << ", " << i->second.size() << "(";
@@ -49,6 +49,7 @@ class IndexEntry {
 
  private:
   unsigned term_;
+  unsigned total_frequency_;
   // This is a mapping document_id -> position_vector.
   std::map<unsigned, std::vector<unsigned> > occurrences_;
 };
