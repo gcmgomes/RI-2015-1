@@ -14,38 +14,39 @@ class Vocabulary {
   Vocabulary();
 
   Vocabulary(unsigned expected_hash_size);
+
   // Add a new term |key| to the vocabulary. Returns the mapped value.
-  unsigned InsertTerm(const std::string& key);
+  unsigned Insert(const std::string& key);
 
   // Add a new term |key| to the vocabulary.
-  void InsertTerm(const std::string& key, unsigned value);
+  void Insert(const std::string& key, unsigned value);
 
   // Returns true if |key| is in the vocabulary, false otherwise.
-  bool CheckTerms(const std::string& key);
+  bool Check(const std::string& key);
 
   // Returns the value to which |key is mapped|. The user must issue a call to
-  // CheckTerms(key) to see if the 0 returned is, in fact, valid.
+  // Check(key) to see if the 0 returned is, in fact, valid.
   unsigned GetMappedValue(const std::string& key);
 
   // Writes the vocabulary to |file_path|.
-  void DumpTerms(const std::string& file_path);
+  void Dump(const std::string& file_path);
 
-  // Recovers the vocabulary written to |file_path| with DumpTerms(). Uses
+  // Recovers the vocabulary written to |file_path| with Dump(). Uses
   // |bridge| to update the read values.
-  void LoadTerms(const std::string& file_path,
-                 const std::unordered_map<unsigned, unsigned>& bridge);
-
-  // Add a new stop word to be ignored by the vocabulary.
-  void InsertStopWord(const std::string& key);
-
-  // Returns true if |key| is a stop word, false otherwise.
-  bool CheckStopWords(const std::string& key);
+  void Load(const std::string& file_path,
+            const std::unordered_map<unsigned, unsigned>& bridge);
 
   // Writes the stop words to |file_path|.
   void DumpStopWords(const std::string& file_path);
 
   // Recovers the stop words written to |file_path| with DumpStopWords().
   void LoadStopWords(const std::string& file_path);
+
+  // Add a new stop word to be ignored by the vocabulary.
+  void InsertStopWord(const std::string& key);
+
+  // Returns true if |key| is a stop word, false otherwise.
+  bool CheckStopWords(const std::string& key);
 
  private:
   std::unordered_map<std::string, unsigned> vocabulary_;

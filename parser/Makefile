@@ -21,6 +21,8 @@ BINPATH := $(ROOT)/bin
 
 DATAPATH := $(ROOT)/data
 
+RANKINGPATH := $(PROOT)/ranking
+
 GUTIL := $(PROOT)/util
 
 COMPONENTS := $(PROOT)/components
@@ -40,6 +42,7 @@ deploy:
 	fi
 
 dependencies:
+	cd $(RANKINGPATH) && $(MAKE) ranking_metadata.o
 	cd $(GUTIL) && $(MAKE) page.o && $(MAKE) libfilemanager.a
 	cd $(COMPONENTS) && $(MAKE) libindexer.a
 	cd $(ROOT)/ricp/build && cmake .. && $(MAKE)
@@ -54,7 +57,7 @@ parser.o: $(ROOT)/parser.h $(ROOT)/parser.cc $(UTILPATH)/text_processing.h
 	$(CC) $(CFLAGS) $(ROOT)/parser.cc -o $(OBJPATH)/parser.o
 
 libparser.a: dependencies parser.o libhtmlEntities.a
-	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o $(COMPONENTS)/obj/indexer.o	$(COMPONENTS)/obj/compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libparser.a $(OBJPATH)/parser.o $(GUTIL)/obj/page.o $(OBJPATH)/htmlEntities.o $(GUTIL)/obj/file_manager.o  $(GUTIL)/obj/tuple.o $(COMPONENTS)/obj/indexer.o	$(COMPONENTS)/obj/compressor.o $(RANKINGPATH)/obj/ranking_metadata.o
 
 vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
 	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o

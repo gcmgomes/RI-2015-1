@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdlib>
+#include <cmath>
 #include <gumbo.h>
 #include <memory>
 #include <unordered_map>
@@ -12,7 +13,7 @@ namespace parsing {
 
 // Remove useless information present in |source|'s header.
 static void RemoveHeader(std::string& source) {
-  unsigned pos = source.find("<!DOC");
+  unsigned pos = source.find('<');
   if (pos && pos != std::string::npos) {
     source.erase(0, pos - 1);
   }
@@ -47,7 +48,7 @@ static std::string ExtractText(GumboNode* node) {
   }
 }
 
-std::unique_ptr<::util::Page> Parser::Parse(
+std::unique_ptr<::util::Page> Parser::Parse(unsigned page_id,
     const std::string& url, const std::string& converted_document) {
   GumboOutput* output = gumbo_parse(converted_document.c_str());
 
@@ -58,20 +59,29 @@ std::unique_ptr<::util::Page> Parser::Parse(
   // Remove all accents.
   TreatText(text);
 
-  std::unique_ptr<::util::Page> page(new ::util::Page(url, text));
+  std::unique_ptr<::util::Page> page(new ::util::Page(page_id, url, text));
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
 
   return page;
 }
 
-bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page, unsigned document_id) {
+bool Parser::GenerateRankingData(const std::unique_ptr<::util::Page>& page) {
+  if (!GenerateTuples(page)) {
+    return false;
+  }
+
+  ranking_metadata_->WritePage(page);
+  return true;
+}
+
+bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page) {
   if (file_manager_ == nullptr || vocabulary_ == nullptr) {
     return false;
   }
   std::string token = " ";
   unsigned search_position = 0, document_position = 0;
-  std::vector<std::unique_ptr<::util::Tuple> > tuples;
+  std::vector<std::unique_ptr<::util::Tuple>> tuples;
   std::unordered_map<unsigned, unsigned> frequencies;
 
   while (!token.empty()) {
@@ -80,29 +90,30 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page, unsigned 
     // Stop word hash <<<< vocabulary hash -> much faster lookup.
     if (!token.empty() && !vocabulary_->CheckStopWords(token)) {
       unsigned term_id = 0;
-      if (!vocabulary_->CheckTerms(token)) {
-        term_id = vocabulary_->InsertTerm(token);
-      }
-      else {
+      if (!vocabulary_->Check(token)) {
+        term_id = vocabulary_->Insert(token);
+      } else {
         term_id = vocabulary_->GetMappedValue(token);
       }
 
       frequencies[term_id]++;
-      std::unique_ptr<::util::Tuple> t(new ::util::Tuple(term_id, document_id, 0, document_position++));
+      std::unique_ptr<::util::Tuple> t(
+          new ::util::Tuple(term_id, page->page_id(), 0, document_position++));
       tuples.push_back(std::move(t));
     }
   }
   auto t = tuples.begin();
-  while(t != tuples.end()) {
+  while (t != tuples.end()) {
     (*t)->frequency = frequencies[(*t)->term];
     file_manager_->WriteTuple(t->get());
-    ++t;    
+    ++t;
   }
+  page->CalculateLength(frequencies);
   return true;
 }
 
 void Parser::DumpVocabulary(const std::string& file_path) {
-  vocabulary_->DumpTerms(file_path);
+  vocabulary_->Dump(file_path);
 }
 
 }  // namespace parsing

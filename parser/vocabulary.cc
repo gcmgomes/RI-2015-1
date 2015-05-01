@@ -7,8 +7,8 @@ Vocabulary::Vocabulary(unsigned expected_hash_size) {
   vocabulary_.reserve(expected_hash_size);
 }
 
-unsigned Vocabulary::InsertTerm(const std::string& key) {
-  if (!CheckTerms(key) && !CheckStopWords(key)) {
+unsigned Vocabulary::Insert(const std::string& key) {
+  if (!Check(key) && !CheckStopWords(key)) {
     unsigned size = vocabulary_.size();
     vocabulary_[key] = size;
     return size;
@@ -16,21 +16,21 @@ unsigned Vocabulary::InsertTerm(const std::string& key) {
   return vocabulary_[key];
 }
 
-void Vocabulary::InsertTerm(const std::string& key, unsigned value) {
+void Vocabulary::Insert(const std::string& key, unsigned value) {
   vocabulary_[key] = value;
 }
 
-bool Vocabulary::CheckTerms(const std::string& key) {
+bool Vocabulary::Check(const std::string& key) {
   return vocabulary_.count(key);
 }
 unsigned Vocabulary::GetMappedValue(const std::string& key) {
-  if (!CheckTerms(key)) {
+  if (!Check(key)) {
     return 0;
   }
   return vocabulary_[key];
 }
 
-void Vocabulary::DumpTerms(const std::string& file_path) {
+void Vocabulary::Dump(const std::string& file_path) {
   std::ofstream output_file;
   output_file.open(file_path.c_str(), std::ofstream::out);
   auto i = vocabulary_.begin();
@@ -40,7 +40,7 @@ void Vocabulary::DumpTerms(const std::string& file_path) {
   }
 }
 
-void Vocabulary::LoadTerms(
+void Vocabulary::Load(
     const std::string& file_path,
     const std::unordered_map<unsigned, unsigned>& bridge) {
   std::ifstream input_file;
@@ -56,7 +56,7 @@ void Vocabulary::LoadTerms(
     if(!bridge.empty() && bridge.count(position)) {
       position = bridge.at(position);
     }
-    this->InsertTerm(key, position);
+    this->Insert(key, position);
   }
   using namespace std;
   cout << "Bridge: " << bridge.size() << endl;

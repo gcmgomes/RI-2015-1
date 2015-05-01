@@ -26,7 +26,7 @@ void QueryProcessor::BuildBridge(const std::string& vocabulary_path) {
   index_file_->seekg(0, index_file_->beg);
   // Initialize the vocabulary with just enough buckets to fit every term.
   vocabulary_.reset(new parsing::Vocabulary(bridge_.size()));
-  vocabulary_->LoadTerms(vocabulary_path, bridge_);
+  vocabulary_->Load(vocabulary_path, bridge_);
   bridge_.clear();
 }
 
@@ -133,7 +133,7 @@ std::set<unsigned> QueryProcessor::QueryIndex(const std::string& query) {
 }
 
 bool QueryProcessor::GetIndexEntry(const std::string& key, IndexEntry& entry) {
-  if (!vocabulary_->CheckTerms(key)) {
+  if (!vocabulary_->Check(key)) {
     return false;
   }
   unsigned index_position = vocabulary_->GetMappedValue(key);

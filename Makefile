@@ -10,6 +10,8 @@ PARSER := $(ROOT)/parser
 
 COMPONENTS := $(ROOT)/components
 
+RANKING := $(ROOT)/ranking
+
 make: clean deploy bin
 
 clean:
@@ -17,6 +19,7 @@ clean:
 	cd $(EXTERNALSORTER) && $(MAKE) clean;
 	cd $(PARSER) && $(MAKE) clean;
 	cd $(COMPONENTS) && $(MAKE) clean;
+	cd $(RANKING) && $(MAKE) clean;
 
 deploy:
 	@if [ ! -d $(DATA) ]; \
@@ -27,9 +30,11 @@ deploy:
 	cd $(EXTERNALSORTER) && $(MAKE) deploy;
 	cd $(PARSER) && $(MAKE) deploy;
 	cd $(COMPONENTS) && $(MAKE) deploy;
+	cd $(RANKING) && $(MAKE) deploy;
 
 bin:
 	cd $(UTIL) && $(MAKE) bin;
 	cd $(EXTERNALSORTER) && $(MAKE) bin;
 	cd $(PARSER) && $(MAKE) bin;
 	cd $(COMPONENTS) && $(MAKE) bin;
+	cd $(RANKING) && $(MAKE) bin;
