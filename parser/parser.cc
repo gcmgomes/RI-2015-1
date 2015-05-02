@@ -108,7 +108,6 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page) {
     file_manager_->WriteTuple(t->get());
     ++t;
   }
-  page->CalculateLength(frequencies);
   return true;
 }
 

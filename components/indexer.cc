@@ -218,8 +218,11 @@ void Indexer::GetPositionVector(std::unique_ptr<std::fstream>& file,
   }
 }
 
-void Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
+bool Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry) {
+  if(input_file->eof() || input_file->peek() == EOF) {
+    return false;
+  }
   entry.term_ = GetUnsignedFromBin(input_file.get());
   entry.occurrences_.clear();
   unsigned doc_count = GetUnsignedFromBin(input_file.get());
@@ -230,6 +233,7 @@ void Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
     GetPositionVector(input_file, entry.occurrences_[doc_id]);
     doc_count--;
   }
+  return true;
 }
 
 }  // namespace components

@@ -41,7 +41,9 @@ class Indexer {
   static void ConvertIndexToText(const std::string& binary_input_file_path,
                                  const std::string& text_output_file_path);
 
-  static void GetNextEntry(std::unique_ptr<std::fstream>& input_file,
+  // Get the next entry in |input_file| and stores it at |entry|. Returns true
+  // if successful, or false if it can't be retrieved.
+  static bool GetNextEntry(std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry);
 
  private:

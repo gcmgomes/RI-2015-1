@@ -5,16 +5,28 @@
 #include "page.h"
 
 namespace util {
+Page::Page() : Page(0) {};
 
-Page::Page() : page_id_(0), url_(""), text_(""), length_(0), page_rank_(0){};
+Page::Page(unsigned page_id) : page_id_(page_id), url_(""), text_(""), length_(0), page_rank_(0), score_(0){};
 
-void Page::CalculateLength(
-    const std::unordered_map<unsigned, unsigned>& frequencies) {
+Page::Page(unsigned page_id, const std::string& url, const std::string& text,
+           double length, double page_rank)
+    : page_id_(page_id), url_(url), text_(text), length_(length),
+      page_rank_(page_rank), score_(0){};
+
+Page::Page(unsigned page_id, const std::string& url, const std::string& text)
+    : Page(page_id, url, text, 0, 0){};
+
+void Page::UpdateWeights(unsigned term_id, double weight) {
+  weights_[term_id] = weight;
+}
+
+void Page::CalculateLength() {
   length_ = 0;
-  auto freq = frequencies.begin();
-  while (freq != frequencies.end()) {
-    length_ += freq->second * freq->second;
-    freq++;
+  auto weight = weights_.begin();
+  while (weight != weights_.end()) {
+    length_ += weight->second * weight->second;
+    ++weight;
   }
   length_ = sqrt(length_);
 }

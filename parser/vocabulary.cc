@@ -20,14 +20,15 @@ void Vocabulary::Insert(const std::string& key, unsigned value) {
   vocabulary_[key] = value;
 }
 
-bool Vocabulary::Check(const std::string& key) {
+bool Vocabulary::Check(const std::string& key) const {
   return vocabulary_.count(key);
 }
-unsigned Vocabulary::GetMappedValue(const std::string& key) {
+
+unsigned Vocabulary::GetMappedValue(const std::string& key) const {
   if (!Check(key)) {
     return 0;
   }
-  return vocabulary_[key];
+  return vocabulary_.at(key);
 }
 
 void Vocabulary::Dump(const std::string& file_path) {
@@ -69,7 +70,7 @@ void Vocabulary::InsertStopWord(const std::string& key) {
   }
 }
 
-bool Vocabulary::CheckStopWords(const std::string& key) {
+bool Vocabulary::CheckStopWords(const std::string& key) const {
   return stop_words_.count(key);
 }
 

@@ -63,7 +63,7 @@ vocabulary.o: ${ROOT}/vocabulary.h ${ROOT}/vocabulary.cc
 	$(CC) $(CFLAGS) $(ROOT)/vocabulary.cc -o $(OBJPATH)/vocabulary.o
 
 libvocabulary.a: vocabulary.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libvocabulary.a $(OBJPATH)/vocabulary.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libvocabulary.a $(OBJPATH)/vocabulary.o $(GUTIL)/obj/page.o
 
 clean:
 	@rm -rf $(LIBPATH)

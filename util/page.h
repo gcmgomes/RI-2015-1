@@ -3,7 +3,15 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <functional>
+#include <map>
 #include <unordered_map>
+
+namespace components {
+
+class Retriever;
+
+}  // namespace components
 
 namespace parsing {
 
@@ -13,6 +21,7 @@ class Parser;
 
 namespace ranking {
 
+class Ranker;
 class RankingMetadata;
 
 }  // namespace ranking
@@ -21,10 +30,19 @@ namespace util {
 
 class Page {
  public:
+  friend class ::components::Retriever;
   friend class ::parsing::Parser;
+  friend class ::ranking::Ranker;
   friend class ::ranking::RankingMetadata;
 
   Page();
+
+  Page(unsigned page_id);
+
+  Page(unsigned page_id, const std::string& url, const std::string& text,
+       double length, double page_rank);
+
+  Page(unsigned page_id, const std::string& url, const std::string& text);
 
   unsigned page_id() const {
     return page_id_;
@@ -46,6 +64,18 @@ class Page {
     return page_rank_;
   }
 
+  double score() const {
+    return score_;
+  }
+
+  bool operator==(const Page& other_page) const {
+    return page_id_ == other_page.page_id();
+  }
+
+  const std::unordered_map<unsigned, double>& weights() const {
+    return weights_;
+  }
+
   std::string ToString() const {
     std::string str = "";
     char i[128];
@@ -57,6 +87,8 @@ class Page {
     str += i;
     sprintf(i, "%lf ", page_rank_);
     str += i;
+    sprintf(i, "%lf", score_);
+    str += i;
     return str;
   }
 
@@ -67,19 +99,13 @@ class Page {
   //  OR a number.
   std::string GetNextTokenFromText(unsigned& starting_position) const;
 
-  // Calculate the |length| of the document based on the |frequencies| mapping.
-  void CalculateLength(
-      const std::unordered_map<unsigned, unsigned>& frequencies);
+  // Update |weights|[term_id] based on |weight|.
+  void UpdateWeights(unsigned term_id, double weight);
+
+  // Calculate the |length| of the document based on the |weights_| mapping.
+  void CalculateLength();
 
  private:
-  Page(unsigned page_id, const std::string& url, const std::string& text,
-       double length, double page_rank)
-      : page_id_(page_id), url_(url), text_(text), length_(length),
-        page_rank_(page_rank){};
-
-  Page(unsigned page_id, const std::string& url, const std::string& text)
-      : Page(page_id, url, text, 0, 0){};
-
   // File id. Easier and cheaper to index then strings.
   unsigned page_id_;
 
@@ -95,6 +121,22 @@ class Page {
 
   // The Page rank score associated with this webpage.
   double page_rank_;
+
+  // The "quality" associated with each page object.
+  double score_;
+
+  // The occurrences of each term in the document. Set only during retrieval
+  // phase.
+  std::unordered_map<unsigned, double> weights_;
+};
+
+struct PageHash {
+  size_t operator()(const Page& p) const {
+    return std::hash<unsigned>()(p.page_id());
+  };
+  bool operator()(const Page& p1, const Page& p2) const {
+    return p1.score() > p2.score();
+  }
 };
 
 }  // namespace util
