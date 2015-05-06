@@ -7,11 +7,11 @@
 namespace util {
 Page::Page() : Page(0) {};
 
-Page::Page(unsigned page_id) : page_id_(page_id), url_(""), text_(""), length_(0), page_rank_(0), score_(0){};
+Page::Page(unsigned page_id) : page_id_(page_id), page_url_(""), text_(""), length_(0), page_rank_(0), score_(0){};
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text,
            double length, double page_rank)
-    : page_id_(page_id), url_(url), text_(text), length_(length),
+    : page_id_(page_id), page_url_(url), text_(text), length_(length),
       page_rank_(page_rank), score_(0){};
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text)

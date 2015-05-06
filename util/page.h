@@ -1,11 +1,11 @@
 #ifndef _RI_2015_1_UTIL_PAGE_H_
 #define _RI_2015_1_UTIL_PAGE_H_
 
-#include <iostream>
 #include <cstdlib>
-#include <functional>
+#include <iostream>
 #include <map>
 #include <unordered_map>
+#include "page_url.h"
 
 namespace components {
 
@@ -48,8 +48,12 @@ class Page {
     return page_id_;
   }
 
+  const PageUrl& page_url() const {
+    return page_url_;
+  }
+
   const std::string& url() const {
-    return url_;
+    return page_url_.url();
   }
 
   const std::string& text() const {
@@ -77,11 +81,11 @@ class Page {
   }
 
   std::string ToString() const {
-    std::string str = "";
+    std::string str = "", url(page_url_.url());
     char i[128];
     sprintf(i, "%u ", page_id_);
     str += i;
-    str += url_ + ' ';
+    str += url + ' ';
     str += text_ + ' ';
     sprintf(i, "%lf ", length_);
     str += i;
@@ -110,7 +114,7 @@ class Page {
   unsigned page_id_;
 
   // Object's website.
-  std::string url_;
+  PageUrl page_url_;
 
   // Clean text. Consisting only of letters, numbers and whitespaces. No
   // diacritics allowed.
@@ -118,6 +122,9 @@ class Page {
 
   // The length of the document.
   double length_;
+
+  // Length of the document as described by it's anchor text.
+  double anchor_length_;
 
   // The Page rank score associated with this webpage.
   double page_rank_;
@@ -128,6 +135,8 @@ class Page {
   // The occurrences of each term in the document. Set only during retrieval
   // phase.
   std::unordered_map<unsigned, double> weights_;
+
+  std::unordered_map<unsigned, double> anchor_weights_;
 };
 
 struct PageHash {

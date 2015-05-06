@@ -31,28 +31,30 @@ void RankingMetadata::WritePage(const std::unique_ptr<::util::Page>& page) {
 }
 
 std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
-  unsigned size = 0;
-  std::unique_ptr<::util::Page> page(new ::util::Page());
+  unsigned size = 0, page_id = 0;
+  double length = 0, page_rank = 0;
+  std::string url = "";
 
   // Retrieve the |page_id_| identifier.
-  metadata_file_.read(reinterpret_cast<char*>(&(page->page_id_)),
+  metadata_file_.read(reinterpret_cast<char*>(&(page_id)),
                       sizeof(unsigned));
 
   // Retrieve the byte count of the url.
   metadata_file_.read(reinterpret_cast<char*>(&size), sizeof(unsigned));
 
   // Retrieve the url itself.
-  page->url_.resize(size);
-  metadata_file_.read(reinterpret_cast<char*>(&(page->url_[0])), size);
+  url.resize(size);
+  metadata_file_.read(reinterpret_cast<char*>(&url[0]), size);
 
   // Retrieve the length.
-  metadata_file_.read(reinterpret_cast<char*>(&(page->length_)),
+  metadata_file_.read(reinterpret_cast<char*>(&length),
                       sizeof(double));
 
   // Retrieve the page_rank.
-  metadata_file_.read(reinterpret_cast<char*>(&(page->page_rank_)),
+  metadata_file_.read(reinterpret_cast<char*>(&page_rank),
                       sizeof(double));
 
+  std::unique_ptr<::util::Page> page(new ::util::Page(page_id, url, "", length, page_rank));
   return page;
 }
 

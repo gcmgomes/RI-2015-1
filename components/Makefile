@@ -37,7 +37,7 @@ deploy:
 
 dependencies:
 	cd $(RANKING) && $(MAKE) librankingmetadata.a
-	cd $(UTIL) && $(MAKE) libtuple.a
+	cd $(UTIL) && $(MAKE) libtuple.a && $(MAKE) libpageurl.a
 	cd $(PARSER) && $(MAKE) libvocabulary.a
 
 bin_dependencies:
@@ -65,7 +65,7 @@ retriever.o: $(ROOT)/retriever.h $(ROOT)/retriever.cc
 	$(CC) $(CFLAGS) $(ROOT)/retriever.cc -o $(OBJPATH)/retriever.o
 
 libretriever.a: dependencies retriever.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libretriever.a $(OBJPATH)/retriever.o $(UTIL)/obj/page.o $(RANKING)/obj/ranking_metadata.o $(PARSER)/obj/vocabulary.o $(OBJPATH)/indexer.o $(OBJPATH)/compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libretriever.a $(OBJPATH)/retriever.o $(UTIL)/obj/page.o $(UTIL)/obj/page_url.o $(RANKING)/obj/ranking_metadata.o $(PARSER)/obj/vocabulary.o $(OBJPATH)/indexer.o $(OBJPATH)/compressor.o
 
 
 clean:

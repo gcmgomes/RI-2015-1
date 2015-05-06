@@ -40,19 +40,19 @@ dependencies1:
 	cd $(COMPONENTS) && $(MAKE) libretriever.a
 
 dependencies2:
-	cd $(UTIL) && $(MAKE) page.o
+	cd $(UTIL) && $(MAKE) page.o && $(MAKE) page_url.o
 
 ranking_metadata.o: ${ROOT}/ranking_metadata.h ${ROOT}/ranking_metadata.cc
 	$(CC) $(CFLAGS) $(ROOT)/ranking_metadata.cc -o $(OBJPATH)/ranking_metadata.o
 
 librankingmetadata.a: dependencies2 ranking_metadata.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/librankingmetadata.a $(OBJPATH)/ranking_metadata.o $(UTIL)/obj/page.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/librankingmetadata.a $(OBJPATH)/ranking_metadata.o $(UTIL)/obj/page.o $(UTIL)/obj/page_url.o 
 
 ranker.o: ${ROOT}/ranker.h ${ROOT}/ranker.cc
 	$(CC) $(CFLAGS) $(ROOT)/ranker.cc -o $(OBJPATH)/ranker.o
 
 libranker.a: dependencies1 ranker.o librankingmetadata.a
-	$(AR) $(ARFLAGS) $(LIBPATH)/libranker.a $(OBJPATH)/ranker.o $(COMPONENTS)/obj/retriever.o $(UTIL)/obj/page.o $(OBJPATH)/ranking_metadata.o $(PARSER)/obj/vocabulary.o $(COMPONENTS)/obj/indexer.o $(COMPONENTS)/obj/compressor.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libranker.a $(OBJPATH)/ranker.o $(COMPONENTS)/obj/retriever.o $(UTIL)/obj/page.o $(UTIL)/obj/page_url.o $(OBJPATH)/ranking_metadata.o $(PARSER)/obj/vocabulary.o $(COMPONENTS)/obj/indexer.o $(COMPONENTS)/obj/compressor.o
 
 clean:
 	@rm -rf $(LIBPATH)
