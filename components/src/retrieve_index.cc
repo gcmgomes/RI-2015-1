@@ -12,15 +12,24 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  if (argc < 4) {
-    cout << argv[0] << " [binary vocabulary] [binary index file] [rankng metadata file]" << endl;
+  if (argc < 5) {
+    cout << argv[0] << " [vocabulary file] [binary index file] [binary anchor index file] [rankng metadata file] <ranking model (0)> <beta weighting(0.5)>" << endl;
     return 0;
   }
 
-  components::Retriever* retriever = new components::Retriever(argv[2], argv[3]);
-  retriever->Init(argv[1]);
-  ranking::Ranker ranker(retriever);
+  double beta = 0.5;
+  unsigned model = 0;
+  if(argc > 5) {
+    sscanf(argv[5], "%u", &model);
+  }
 
+  if(argc > 6) {
+    sscanf(argv[6], "%lf", &beta);
+  }
+
+  components::Retriever* retriever = new components::Retriever(argv[2], argv[3], argv[4]);
+  retriever->Init(argv[1]);
+  ranking::Ranker ranker(retriever, beta);
 
   while(true) {
     std::string query = "";
@@ -31,7 +40,7 @@ int main(int argc, char** argv) {
     }
     std::vector<::util::Page> answers;
     ranker.retriever()->Retrieve(query, answers);
-    ranker.Rank(query, answers, 0);
+    ranker.Rank(query, answers, model);
     auto i = answers.begin();
     while(i != answers.end()) {
       cout << i->ToString() << endl;

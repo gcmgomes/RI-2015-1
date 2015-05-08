@@ -7,16 +7,16 @@ Vocabulary::Vocabulary(unsigned expected_hash_size) {
   vocabulary_.reserve(expected_hash_size);
 }
 
-unsigned Vocabulary::Insert(const std::string& key) {
+VocabularyEntry Vocabulary::Insert(const std::string& key) {
   if (!Check(key) && !CheckStopWords(key)) {
     unsigned size = vocabulary_.size();
-    vocabulary_[key] = size;
-    return size;
+    vocabulary_[key] = std::make_pair(size, size);
+    return std::make_pair(size, size);
   }
   return vocabulary_[key];
 }
 
-void Vocabulary::Insert(const std::string& key, unsigned value) {
+void Vocabulary::Insert(const std::string& key, VocabularyEntry value) {
   vocabulary_[key] = value;
 }
 
@@ -24,9 +24,9 @@ bool Vocabulary::Check(const std::string& key) const {
   return vocabulary_.count(key);
 }
 
-unsigned Vocabulary::GetMappedValue(const std::string& key) const {
+VocabularyEntry Vocabulary::GetMappedValue(const std::string& key) const {
   if (!Check(key)) {
-    return 0;
+    return std::make_pair(0, 0);
   }
   return vocabulary_.at(key);
 }
@@ -36,28 +36,29 @@ void Vocabulary::Dump(const std::string& file_path) {
   output_file.open(file_path.c_str(), std::ofstream::out);
   auto i = vocabulary_.begin();
   while (i != vocabulary_.end()) {
-    output_file << i->first << ' ' << i->second << std::endl;
+    output_file << i->first << ' ' << i->second.first << ' ' << i->second.second
+                << std::endl;
     i++;
   }
 }
 
-void Vocabulary::Load(
-    const std::string& file_path,
-    const std::unordered_map<unsigned, unsigned>& bridge) {
+void Vocabulary::Load(const std::string& file_path,
+                      const std::unordered_map<unsigned, VocabularyEntry>& bridge) {
   std::ifstream input_file;
   input_file.open(file_path.c_str(), std::ifstream::in);
   while (!input_file.eof() && input_file.peek() != EOF) {
     std::string key = "";
-    unsigned position = 0;
-    input_file >> key >> position;
-    if(input_file.eof()) {
+    unsigned position = 0, anchor_position = 0;
+    input_file >> key >> position >> anchor_position;
+    if (input_file.eof()) {
       break;
     }
     key.shrink_to_fit();
-    if(!bridge.empty() && bridge.count(position)) {
-      position = bridge.at(position);
+    if (!bridge.empty() && bridge.count(position)) {
+      position = bridge.at(position).first;
+      anchor_position = bridge.at(anchor_position).second;
     }
-    this->Insert(key, position);
+    this->Insert(key, std::make_pair(position, anchor_position));
   }
   using namespace std;
   cout << "Bridge: " << bridge.size() << endl;

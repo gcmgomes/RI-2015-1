@@ -14,18 +14,11 @@ namespace parsing {
 
 // Remove useless information present in |source|'s header.
 static bool RemoveHeader(std::string& source) {
-  unsigned pos = source.find("<!DOC");
+  unsigned pos = source.find("<");
   if (pos && pos != std::string::npos) {
     source.erase(0, pos - 1);
     return true;
-  } else {
-    unsigned pos = source.find("<!doc");
-    if (pos && pos != std::string::npos) {
-      source.erase(0, pos - 1);
-      return true;
-    }
   }
-
   return false;
 }
 
@@ -162,9 +155,9 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page,
     if (!token.empty() && !vocabulary_->CheckStopWords(token)) {
       unsigned term_id = 0;
       if (!vocabulary_->Check(token)) {
-        term_id = vocabulary_->Insert(token);
+        term_id = vocabulary_->Insert(token).first;
       } else {
-        term_id = vocabulary_->GetMappedValue(token);
+        term_id = vocabulary_->GetMappedValue(token).first;
       }
 
       frequencies[term_id]++;
@@ -205,6 +198,7 @@ bool Parser::GenerateAnchorData(
       final_url = current_url.url();
     }
     if (page_knowledge_->known_pages().count(final_url)) {
+      std::cout << final_url << std::endl;
       unsigned page_id = PageId(final_url, page_knowledge_->known_pages());
       std::unique_ptr<::util::Page> anchor_page(
           new ::util::Page(page_id, final_url, referred_pages[i].second));
@@ -216,6 +210,7 @@ bool Parser::GenerateAnchorData(
   }
   return true;
 }
+
 void Parser::DumpVocabulary(const std::string& file_path) {
   vocabulary_->Dump(file_path);
 }

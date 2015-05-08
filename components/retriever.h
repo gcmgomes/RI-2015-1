@@ -15,6 +15,7 @@ namespace components {
 class Retriever {
  public:
   Retriever(const std::string& index_file_path,
+            const std::string& anchor_index_file_path,
             const std::string& ranking_metadata_file_path);
 
   const std::unique_ptr<::parsing::Vocabulary>& vocabulary() {
@@ -33,7 +34,8 @@ class Retriever {
                        std::string& token);
 
   // Recover the index entry associated with |term| and stores it at |entry|.
-  bool GetIndexEntry(const std::string& term, IndexEntry& entry);
+  bool GetIndexEntry(const std::string& term, IndexEntry& entry,
+                     bool anchor_index);
 
  private:
   // Convert the values in |doc_set| in meaningful Page objects stored in
@@ -49,6 +51,9 @@ class Retriever {
 
   // The file where the index is stored.
   std::unique_ptr<std::fstream> index_file_;
+
+  // The file where the anchor text index is stored;
+  std::unique_ptr<std::fstream> anchor_index_file_;
 };
 
 }  // namespace components

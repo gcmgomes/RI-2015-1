@@ -5,8 +5,8 @@ namespace ranking {
 
 RankingMetadata::RankingMetadata(const std::string& metadata_file_path) {
   metadata_file_.open(metadata_file_path.c_str(), std::fstream::in |
-                                                    std::fstream::out |
-                                                    std::fstream::binary);
+                                                      std::fstream::out |
+                                                      std::fstream::binary);
 }
 
 void RankingMetadata::WritePage(const std::unique_ptr<::util::Page>& page) {
@@ -36,8 +36,7 @@ std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
   std::string url = "";
 
   // Retrieve the |page_id_| identifier.
-  metadata_file_.read(reinterpret_cast<char*>(&(page_id)),
-                      sizeof(unsigned));
+  metadata_file_.read(reinterpret_cast<char*>(&(page_id)), sizeof(unsigned));
 
   // Retrieve the byte count of the url.
   metadata_file_.read(reinterpret_cast<char*>(&size), sizeof(unsigned));
@@ -47,14 +46,13 @@ std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
   metadata_file_.read(reinterpret_cast<char*>(&url[0]), size);
 
   // Retrieve the length.
-  metadata_file_.read(reinterpret_cast<char*>(&length),
-                      sizeof(double));
+  metadata_file_.read(reinterpret_cast<char*>(&length), sizeof(double));
 
   // Retrieve the page_rank.
-  metadata_file_.read(reinterpret_cast<char*>(&page_rank),
-                      sizeof(double));
+  metadata_file_.read(reinterpret_cast<char*>(&page_rank), sizeof(double));
 
-  std::unique_ptr<::util::Page> page(new ::util::Page(page_id, url, "", length, page_rank));
+  std::unique_ptr<::util::Page> page(
+      new ::util::Page(page_id, url, "", length, page_rank));
   return page;
 }
 
@@ -67,7 +65,8 @@ void RankingMetadata::LoadPages() {
 
 void RankingMetadata::UpdatePagesWeights(
     unsigned term_id,
-    const std::map<unsigned, std::vector<unsigned>>& occurrences) {
+    const std::map<unsigned, std::vector<unsigned>>& occurrences,
+    bool is_anchor_weighting) {
   auto occurrence = occurrences.begin();
 
   // Iterating through |occurrences| should be MUCH faster then iterating
@@ -77,9 +76,9 @@ void RankingMetadata::UpdatePagesWeights(
 
     // vector model weighting.
     double weight = (1 + log(occurrence->second.size()));
-    weight *= log(static_cast<double>(pages_.size() / occurrences.size()));
+    weight *= log(1 + static_cast<double>(pages_.size() / occurrences.size()));
 
-    pages_[page_id].UpdateWeights(term_id, weight);
+    pages_[page_id].UpdateWeights(term_id, weight, is_anchor_weighting);
     ++occurrence;
   }
 }

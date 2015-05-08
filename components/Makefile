@@ -49,12 +49,6 @@ indexer.o: $(ROOT)/indexer.h $(ROOT)/indexer.cc
 libindexer.a: dependencies indexer.o compressor.o
 	$(AR) $(ARFLAGS) $(LIBPATH)/libindexer.a $(OBJPATH)/indexer.o $(UTIL)/obj/tuple.o $(OBJPATH)/compressor.o
 
-query_processor.o: $(ROOT)/query_processor.h $(ROOT)/query_processor.cc
-	$(CC) $(CFLAGS) $(ROOT)/query_processor.cc -o $(OBJPATH)/query_processor.o
-
-libqueryprocessor.a: dependencies query_processor.o indexer.o compressor.o
-	$(AR) $(ARFLAGS) $(LIBPATH)/libqueryprocessor.a $(OBJPATH)/query_processor.o $(UTIL)/obj/tuple.o $(PARSER)/obj/vocabulary.o $(OBJPATH)/indexer.o $(OBJPATH)/compressor.o
-
 compressor.o: $(ROOT)/compressor.h $(ROOT)/compressor.cc
 	$(CC) $(CFLAGS) $(ROOT)/compressor.cc -o $(OBJPATH)/compressor.o
 
@@ -74,7 +68,6 @@ clean:
 	@rm -rf $(BINPATH)
 	@rm -rf $(DATAPATH)
 
-bin: bin_dependencies libqueryprocessor.a $(SRCPATH)/query_index.cc libcompressor.a libretriever.a
-	$(CC) $(BINFLAGS) $(SRCPATH)/query_index.cc $(LIBPATH)/libqueryprocessor.a -o $(BINPATH)/query_index
+bin: bin_dependencies libcompressor.a libretriever.a
 	$(CC) $(BINFLAGS) $(SRCPATH)/compressor.cc $(LIBPATH)/libcompressor.a -o $(BINPATH)/compressor
 	$(CC) $(BINFLAGS) $(SRCPATH)/retrieve_index.cc $(LIBPATH)/libretriever.a $(RANKING)/lib/libranker.a -o $(BINPATH)/retrieve_index

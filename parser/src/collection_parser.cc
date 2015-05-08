@@ -36,10 +36,11 @@ int main(int argc, char** argv) {
   std::string index_file_path = argv[1];
   index_file_path += '/';
   index_file_path += argv[2];
-  parsing::Parser parser(
-      new ::util::FileManager(0, argv[6], argv[6]),
-      new ::util::FileManager(0, argv[7], argv[7]), vocabulary.release(),
-      new ::parsing::PageKnowledge(index_file_path), ranking_metadata.release());
+  parsing::Parser parser(new ::util::FileManager(0, argv[6], argv[6]),
+                         new ::util::FileManager(0, argv[7], argv[7]),
+                         vocabulary.release(),
+                         new ::parsing::PageKnowledge(index_file_path),
+                         ranking_metadata.release());
 
   RICPNS::CollectionReader* reader =
       new RICPNS::CollectionReader(argv[1], argv[2]);
@@ -47,17 +48,16 @@ int main(int argc, char** argv) {
 
   unsigned total_documents = 0;
   while (reader->getNextDocument(doc)) {
-    std::string contents = doc.getText(), dummy = doc.getText(), url = doc.getURL();
+    std::string contents = doc.getText(), dummy = doc.getText(),
+                url = doc.getURL();
     doc.clear();
-    if(!parser.Convert(contents)) {
+    if (!parser.Convert(contents)) {
       continue;
     }
     std::vector<std::pair<std::string, std::string>> referred_pages;
     std::unique_ptr<util::Page> page =
         std::move(parser.Parse(url, contents, referred_pages));
     if (page->text().size() <= 1) {
-      cout << url << ' ' << dummy << endl;
-      cin >> url;
       continue;
     }
     if (!parser.GenerateRankingData(page, referred_pages)) {

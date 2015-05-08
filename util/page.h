@@ -64,6 +64,10 @@ class Page {
     return length_;
   }
 
+  double anchor_length() const {
+    return anchor_length_;
+  }
+
   double page_rank() const {
     return page_rank_;
   }
@@ -80,6 +84,10 @@ class Page {
     return weights_;
   }
 
+  const std::unordered_map<unsigned, double>& anchor_weights() const {
+    return anchor_weights_;
+  }
+
   std::string ToString() const {
     std::string str = "", url(page_url_.url());
     char i[128];
@@ -88,6 +96,8 @@ class Page {
     str += url + ' ';
     str += text_ + ' ';
     sprintf(i, "%lf ", length_);
+    str += i;
+    sprintf(i, "%lf ", anchor_length_);
     str += i;
     sprintf(i, "%lf ", page_rank_);
     str += i;
@@ -104,7 +114,7 @@ class Page {
   std::string GetNextTokenFromText(unsigned& starting_position) const;
 
   // Update |weights|[term_id] based on |weight|.
-  void UpdateWeights(unsigned term_id, double weight);
+  void UpdateWeights(unsigned term_id, double weight, bool is_anchor_weight);
 
   // Calculate the |length| of the document based on the |weights_| mapping.
   void CalculateLength();

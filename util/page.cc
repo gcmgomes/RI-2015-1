@@ -5,9 +5,11 @@
 #include "page.h"
 
 namespace util {
-Page::Page() : Page(0) {};
+Page::Page() : Page(0){};
 
-Page::Page(unsigned page_id) : page_id_(page_id), page_url_(""), text_(""), length_(0), page_rank_(0), score_(0){};
+Page::Page(unsigned page_id)
+    : page_id_(page_id), page_url_(""), text_(""), length_(0), page_rank_(0),
+      score_(0){};
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text,
            double length, double page_rank)
@@ -17,8 +19,13 @@ Page::Page(unsigned page_id, const std::string& url, const std::string& text,
 Page::Page(unsigned page_id, const std::string& url, const std::string& text)
     : Page(page_id, url, text, 0, 0){};
 
-void Page::UpdateWeights(unsigned term_id, double weight) {
-  weights_[term_id] = weight;
+void Page::UpdateWeights(unsigned term_id, double weight,
+                         bool is_anchor_weight) {
+  if (is_anchor_weight) {
+    anchor_weights_[term_id] = weight;
+  } else {
+    weights_[term_id] = weight;
+  }
 }
 
 void Page::CalculateLength() {
@@ -29,6 +36,14 @@ void Page::CalculateLength() {
     ++weight;
   }
   length_ = sqrt(length_);
+
+  anchor_length_ = 0;
+  weight = anchor_weights_.begin();
+  while (weight != anchor_weights_.end()) {
+    anchor_length_ += weight->second * weight->second;
+    ++weight;
+  }
+  anchor_length_ = sqrt(anchor_length_);
 }
 
 std::string Page::GetNextTokenFromText(unsigned& starting_position) const {

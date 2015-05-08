@@ -35,7 +35,8 @@ class RankingMetadata {
   // |occurrences|.
   void UpdatePagesWeights(
       unsigned term_id,
-      const std::map<unsigned, std::vector<unsigned>>& occurrences);
+      const std::map<unsigned, std::vector<unsigned>>& occurrences,
+      bool is_anchor_weighting);
 
   void CalculatePagesLengths();
 

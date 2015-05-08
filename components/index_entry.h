@@ -16,10 +16,16 @@ class IndexEntry {
   IndexEntry() {
     term_ = 0;
   }
+
   unsigned term() const {
     return term_;
   };
+
   const std::map<unsigned, std::vector<unsigned> >& occurrences() const {
+    return occurrences_;
+  };
+
+  std::map<unsigned, std::vector<unsigned> >& mutable_occurrences() {
     return occurrences_;
   };
 

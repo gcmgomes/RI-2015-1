@@ -26,7 +26,7 @@ static void RemoveDiacriticsInternal(const char* src, char* dst, int idx) {
   const char* tr =
       "AAAAAAECEEEEIIIIDNOOOOOx0UUUUYPsaaaaaaeceeeeiiiiOnooooo/0uuuuypy";
   while (*src != 0) {
-    u_char ch = *src;
+    uint8_t ch = *src;
     if (ch == 0x0A) {
       dst[idx++] = (char)' ';
       ++src;

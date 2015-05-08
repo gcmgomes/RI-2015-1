@@ -12,6 +12,7 @@ PageUrl::PageUrl(const std::string& url) {
 static bool RemovePrefix(std::string& url) {
   std::vector<std::string> prefixes = { "http://www.", "https://www.",
                                         "http://ww.",  "https://ww.",
+                                        "http://",  "https://",
                                         "www.",        "ww.",
                                         "//" };
   unsigned prefix = 0;
