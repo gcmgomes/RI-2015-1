@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include "page_url.h"
 
 namespace components {
@@ -68,6 +69,10 @@ class Page {
     return anchor_length_;
   }
 
+  double& mutable_page_rank() {
+    return page_rank_;
+  }
+
   double page_rank() const {
     return page_rank_;
   }
@@ -88,6 +93,14 @@ class Page {
     return anchor_weights_;
   }
 
+  const std::unordered_set<unsigned>& outlinks() const {
+    return outlinks_;
+  }
+
+  const std::unordered_set<unsigned>& inlinks() const {
+    return inlinks_;
+  }
+
   std::string ToString() const {
     std::string str = "", url(page_url_.url());
     char i[128];
@@ -106,6 +119,57 @@ class Page {
     return str;
   }
 
+  std::string ToDebugString() const {
+    std::string str = "", url(page_url_.url());
+    char i[128];
+    sprintf(i, "%u ", page_id_);
+    str += i;
+    str += url + ' ';
+    str += text_ + ' ';
+    sprintf(i, "%lf ", length_);
+    str += i;
+    sprintf(i, "%lf ", anchor_length_);
+    str += i;
+    sprintf(i, "%lf ", page_rank_);
+    str += i;
+    sprintf(i, "%lf", score_);
+    str += i;
+    str += " | ";
+    auto w = weights_.begin();
+    while (w != weights_.end()) {
+      sprintf(i, "%u ", w->first);
+      str += i;
+      sprintf(i, "%lf ", w->second);
+      str += i;
+      ++w;
+    }
+    str += " | ";
+    w = anchor_weights_.begin();
+    while (w != anchor_weights_.end()) {
+      sprintf(i, "%u ", w->first);
+      str += i;
+      sprintf(i, "%lf ", w->second);
+      str += i;
+      ++w;
+    }
+
+    str += " | ";
+    auto l = outlinks_.begin();
+    while (l != outlinks_.end()) {
+      sprintf(i, "%u ", *l);
+      str += i;
+      ++l;
+    }
+    str += " | ";
+     l = inlinks_.begin();
+    while (l != inlinks_.end()) {
+      sprintf(i, "%u ", *l);
+      str += i;
+      ++l;
+    }
+
+    return str;
+  }
   // Returns the next token starting the search at |starting_position|, or the
   // empty string if the whole text has been processed.
   // A token is either:
@@ -115,6 +179,9 @@ class Page {
 
   // Update |weights|[term_id] based on |weight|.
   void UpdateWeights(unsigned term_id, double weight, bool is_anchor_weight);
+
+  // Update the link information of this page.
+  void UpdateLinks(unsigned page_id, bool is_inlink);
 
   // Calculate the |length| of the document based on the |weights_| mapping.
   void CalculateLength();
@@ -146,7 +213,15 @@ class Page {
   // phase.
   std::unordered_map<unsigned, double> weights_;
 
+  // The occurrences of each term that describes this document in anchor text.
+  // Set only during retrieval phase.
   std::unordered_map<unsigned, double> anchor_weights_;
+
+  // The outgoing links of this page. Set during the parsing phase.
+  std::unordered_set<unsigned> outlinks_;
+
+  // The incoming links of this page. Set during the a preprocessing phase.
+  std::unordered_set<unsigned> inlinks_;
 };
 
 struct PageHash {

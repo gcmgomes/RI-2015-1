@@ -8,7 +8,7 @@ namespace util {
 Page::Page() : Page(0){};
 
 Page::Page(unsigned page_id)
-    : page_id_(page_id), page_url_(""), text_(""), length_(0), page_rank_(0),
+    : page_id_(page_id), page_url_(""), text_(""), length_(0), page_rank_(1),
       score_(0){};
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text,
@@ -17,7 +17,7 @@ Page::Page(unsigned page_id, const std::string& url, const std::string& text,
       page_rank_(page_rank), score_(0){};
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text)
-    : Page(page_id, url, text, 0, 0){};
+    : Page(page_id, url, text, 0, 1){};
 
 void Page::UpdateWeights(unsigned term_id, double weight,
                          bool is_anchor_weight) {
@@ -25,6 +25,17 @@ void Page::UpdateWeights(unsigned term_id, double weight,
     anchor_weights_[term_id] = weight;
   } else {
     weights_[term_id] = weight;
+  }
+}
+
+void Page::UpdateLinks(unsigned page_id, bool is_inlink) {
+  if(page_id == page_id_) {
+    return;
+  }
+  if (is_inlink) {
+    inlinks_.insert(page_id);
+  } else {
+    outlinks_.insert(page_id);
   }
 }
 

@@ -54,6 +54,12 @@ ranker.o: ${ROOT}/ranker.h ${ROOT}/ranker.cc
 libranker.a: dependencies1 ranker.o librankingmetadata.a
 	$(AR) $(ARFLAGS) $(LIBPATH)/libranker.a $(OBJPATH)/ranker.o $(COMPONENTS)/obj/retriever.o $(UTIL)/obj/page.o $(UTIL)/obj/page_url.o $(OBJPATH)/ranking_metadata.o $(PARSER)/obj/vocabulary.o $(COMPONENTS)/obj/indexer.o $(COMPONENTS)/obj/compressor.o
 
+page_ranker.o: ${ROOT}/page_ranker.h ${ROOT}/page_ranker.cc
+	$(CC) $(CFLAGS) $(ROOT)/page_ranker.cc -o $(OBJPATH)/page_ranker.o
+
+libpageranker.a: dependencies2 page_ranker.o
+	$(AR) $(ARFLAGS) $(LIBPATH)/libpageranker.a $(OBJPATH)/page_ranker.o $(UTIL)/obj/page.o $(UTIL)/obj/page_url.o $(OBJPATH)/ranking_metadata.o
+
 clean:
 	@rm -rf $(LIBPATH)
 	@rm -rf $(OBJPATH)

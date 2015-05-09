@@ -15,8 +15,8 @@ class Parser {
  public:
   // Takes ownership of every pointer.
   Parser(::util::FileManager* file_manager,
-         ::util::FileManager* anchor_file_manager,
-         Vocabulary* vocabulary, PageKnowledge* page_knowledge,
+         ::util::FileManager* anchor_file_manager, Vocabulary* vocabulary,
+         PageKnowledge* page_knowledge,
          ranking::RankingMetadata* ranking_metadata)
       : file_manager_(file_manager), anchor_file_manager_(anchor_file_manager),
         vocabulary_(vocabulary), page_knowledge_(page_knowledge),
@@ -48,8 +48,9 @@ class Parser {
   bool GenerateTuples(const std::unique_ptr<::util::Page>& page,
                       bool is_anchor_page);
 
-  // Handles anchor text information generation supplied by |referred_pages|.
-  bool GenerateAnchorData(
+  // Handles link data information generation supplied by |referred_pages|.
+  // Outlink data is added to |page|.
+  bool GenerateLinkData(
       const std::unique_ptr<::util::Page>& page,
       const std::vector<std::pair<std::string, std::string>>& referred_pages);
 

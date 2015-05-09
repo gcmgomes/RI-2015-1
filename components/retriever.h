@@ -22,8 +22,9 @@ class Retriever {
     return vocabulary_;
   }
 
-  // Properly initializes |vocabulary_|
-  void Init(const std::string& vocabulary_file_path);
+  // Properly initializes |vocabulary_|. Builds the weights of each page if
+  // |init_weights| is set.
+  void Init(const std::string& vocabulary_file_path, bool init_weights);
 
   // Retrieve all the documents associated with |query|. A |query| is a sequence
   // of terms without any logical operators.
@@ -36,6 +37,9 @@ class Retriever {
   // Recover the index entry associated with |term| and stores it at |entry|.
   bool GetIndexEntry(const std::string& term, IndexEntry& entry,
                      bool anchor_index);
+
+  // Writes the augmented pages back to where they came from.
+  void UpdatePagesToFile();
 
  private:
   // Convert the values in |doc_set| in meaningful Page objects stored in

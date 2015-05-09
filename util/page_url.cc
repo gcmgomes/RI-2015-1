@@ -119,6 +119,9 @@ void PageUrl::RelativeMove(const std::string& href) {
   if(!IsRelative(href)) {
     return;
   }
+  if(tokens_.size() > 1 && tokens_.back().find(".") != std::string::npos) {
+    tokens_.pop_back();
+  }
   // Get the associated base url.
   std::string base_url;
   BaseUrl(url_, base_url);

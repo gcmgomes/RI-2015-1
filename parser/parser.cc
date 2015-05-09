@@ -124,11 +124,11 @@ bool Parser::GenerateRankingData(
     return false;
   }
 
-  ranking_metadata_->WritePage(page);
-
-  if (!GenerateAnchorData(page, referred_pages)) {
+  if (!GenerateLinkData(page, referred_pages)) {
     return false;
   }
+
+  ranking_metadata_->WritePage(page);
 
   return true;
 }
@@ -185,26 +185,29 @@ bool Parser::GenerateTuples(const std::unique_ptr<::util::Page>& page,
   return true;
 }
 
-bool Parser::GenerateAnchorData(
+bool Parser::GenerateLinkData(
     const std::unique_ptr<::util::Page>& page,
     const std::vector<std::pair<std::string, std::string>>& referred_pages) {
   unsigned i = 0;
   while (i < referred_pages.size()) {
-    std::string final_url = referred_pages[i].first;
+    std::string final_url = referred_pages[i].first, original_url = final_url;
     // If the href is a relative page, we gotta make it into a absolute one.
     if (::util::PageUrl::IsRelative(final_url)) {
       ::util::PageUrl current_url(page->url());
       current_url.RelativeMove(final_url);
       final_url = current_url.url();
+    } else {
+      ::util::PageUrl current_url(final_url);
+      final_url = current_url.url();
     }
     if (page_knowledge_->known_pages().count(final_url)) {
-      std::cout << final_url << std::endl;
       unsigned page_id = PageId(final_url, page_knowledge_->known_pages());
       std::unique_ptr<::util::Page> anchor_page(
           new ::util::Page(page_id, final_url, referred_pages[i].second));
       if (!GenerateTuples(anchor_page, true)) {
         return false;
       }
+      page->UpdateLinks(page_id, false);
     }
     ++i;
   }

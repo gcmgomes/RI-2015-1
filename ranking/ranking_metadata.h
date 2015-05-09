@@ -16,7 +16,7 @@ class RankingMetadata {
 
   std::unordered_map<unsigned, ::util::Page>& mutable_pages() {
     return pages_;
-  }
+    }
 
   const std::unordered_map<unsigned, ::util::Page>& pages() const {
     return pages_;
@@ -31,6 +31,9 @@ class RankingMetadata {
   // Load the data in |metadata_file_| to |pages_|.
   void LoadPages();
 
+  // Fills the |inlinks_| of each object in |pages_|.
+  void FixInlinks();
+
   // Updates |pages_| to update the correct weights of each object, based on
   // |occurrences|.
   void UpdatePagesWeights(
@@ -39,6 +42,9 @@ class RankingMetadata {
       bool is_anchor_weighting);
 
   void CalculatePagesLengths();
+
+  // Writes the pages back to |metadata_file_|.
+  void UpdatePagesToFile();
 
  private:
   // Stream where data will be read from/written to.

@@ -24,7 +24,7 @@ static void FillBridge(
     std::unique_ptr<std::fstream>& index_file,
     std::unique_ptr<::ranking::RankingMetadata>& ranking_metadata,
     std::unordered_map<unsigned, ::parsing::VocabularyEntry>& bridge,
-    bool anchor_bridge) {
+    bool anchor_bridge, bool init_weights) {
   // Passes through the index once to get information on every term.
   while (!index_file->eof() && index_file->peek() != EOF) {
     unsigned position_in_file = index_file->tellg();
@@ -34,10 +34,13 @@ static void FillBridge(
       break;
     }
 
-    // We have to put |position_in_file| instead of the |term_id| due to the
-    // vocabulary overwrite.
-    ranking_metadata->UpdatePagesWeights(position_in_file, entry.occurrences(),
-                                         anchor_bridge);
+    if (init_weights) {
+      // We have to put |position_in_file| instead of the |term_id| due to the
+      // vocabulary overwrite.
+      ranking_metadata->UpdatePagesWeights(position_in_file,
+                                           entry.occurrences(), anchor_bridge);
+    }
+
     if (!anchor_bridge) {
       bridge[entry.term()].first = position_in_file;
     } else {
@@ -48,17 +51,18 @@ static void FillBridge(
   index_file->seekg(0, index_file->beg);
 }
 
-void Retriever::Init(const std::string& vocabulary_file_path) {
+void Retriever::Init(const std::string& vocabulary_file_path, bool init_weights) {
   ranking_metadata_->LoadPages();
   std::unordered_map<unsigned, ::parsing::VocabularyEntry> bridge;
-  FillBridge(index_file_, ranking_metadata_, bridge, false);
-  FillBridge(anchor_index_file_, ranking_metadata_, bridge, true);
+  FillBridge(index_file_, ranking_metadata_, bridge, false, init_weights);
+  FillBridge(anchor_index_file_, ranking_metadata_, bridge, true, init_weights);
 
   // Initialize the vocabulary with just enough buckets to fit every term.
   vocabulary_.reset(new parsing::Vocabulary(bridge.size() + 1));
   vocabulary_->Load(vocabulary_file_path, bridge);
 
   ranking_metadata_->CalculatePagesLengths();
+  ranking_metadata_->FixInlinks();
 }
 
 void Retriever::GetToken(const std::string& query, unsigned& pos,
@@ -69,6 +73,10 @@ void Retriever::GetToken(const std::string& query, unsigned& pos,
     pos++;
   }
   pos++;
+}
+
+void Retriever::UpdatePagesToFile() {
+  ranking_metadata_->UpdatePagesToFile();
 }
 
 static void ExtractDocuments(const IndexEntry& entry,

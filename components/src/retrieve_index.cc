@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   }
 
   components::Retriever* retriever = new components::Retriever(argv[2], argv[3], argv[4]);
-  retriever->Init(argv[1]);
+  retriever->Init(argv[1], false);
   ranking::Ranker ranker(retriever, beta);
 
   while(true) {
