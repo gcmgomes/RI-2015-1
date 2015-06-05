@@ -14,44 +14,57 @@ class RankingMetadata {
  public:
   RankingMetadata(const std::string& metadata_file_path);
 
-  std::unordered_map<unsigned, ::util::Page>& mutable_pages() {
-    return pages_;
-    }
+  // Creates the file. CAREFUL, this will erase the file pointed by
+  // |metadata_file_path|.
+  RankingMetadata(const std::string& metadata_file_path, bool clean_file);
 
-  const std::unordered_map<unsigned, ::util::Page>& pages() const {
+  std::unordered_map<unsigned, std::pair<double, double>>&
+  mutable_page_lengths() {
+    return page_lengths_;
+  }
+
+  const std::unordered_map<unsigned, std::pair<double, double>>& page_lengths()
+      const {
+    return page_lengths_;
+  }
+
+  std::unordered_map<unsigned, unsigned>& mutable_pages() {
+    return pages_;
+  }
+
+  const std::unordered_map<unsigned, unsigned>& pages() const {
     return pages_;
   }
 
   // Write the information contained in |page| to |metadata_file_|.
   void WritePage(const std::unique_ptr<::util::Page>& page);
 
-  // Load a single page object from |metadata_file_| and return it.
+  // Returns true if the end of the input file has been reached, false
+  // otherwise.
+  bool eof();
+
+  // Loads a single page object from |metadata_file_| and returns it.
   std::unique_ptr<::util::Page> LoadPage();
+
+  // Loads a single page object identified by |page_id| from |metadata_file_|
+  // and returns it.
+  std::unique_ptr<::util::Page> LoadPage(unsigned page_id);
 
   // Load the data in |metadata_file_| to |pages_|.
   void LoadPages();
 
-  // Fills the |inlinks_| of each object in |pages_|.
-  void FixInlinks();
-
-  // Updates |pages_| to update the correct weights of each object, based on
-  // |occurrences|.
-  void UpdatePagesWeights(
-      unsigned term_id,
-      const std::map<unsigned, std::vector<unsigned>>& occurrences,
-      bool is_anchor_weighting);
-
-  void CalculatePagesLengths();
-
-  // Writes the pages back to |metadata_file_|.
-  void UpdatePagesToFile();
+  // Returns the read/write pointers to the beginning of the file.
+  void ReturnToBegin();
 
  private:
   // Stream where data will be read from/written to.
   std::fstream metadata_file_;
 
-  // Stores the objects read from |metadata_file_|;
-  std::unordered_map<unsigned, ::util::Page> pages_;
+  // Stores the positions of objects read from |metadata_file_|;
+  std::unordered_map<unsigned, unsigned> pages_;
+
+  // Stores the lengths of each ::util::Page object.
+  std::unordered_map<unsigned, std::pair<double, double>> page_lengths_;
 };
 
 }  // namespace ranking

@@ -2,82 +2,42 @@
 
 namespace ranking {
 
-PageRanker::PageRanker(RankingMetadata* ranking_metadata)
-    : web_graph_size_(0), ranking_metadata_(ranking_metadata){};
+PageRanker::PageRanker(unsigned web_graph_size, double random_surfer_q)
+    : web_graph_size_(web_graph_size), random_surfer_q_(random_surfer_q){};
 
-PageRanker::PageRanker(const std::string& metadata_file_path) {
-  ranking_metadata_.reset(new RankingMetadata(metadata_file_path));
-}
-
-void PageRanker::Init() {
-  ranking_metadata_->LoadPages();
-  CalculateWebGraphSize();
-}
-
-void PageRanker::Rank(double q) {
-  int dummy = 0;
-  do {
-    temporary_page_ranks_.clear();
-    auto page = ranking_metadata_->mutable_pages().begin();
-    while (page != ranking_metadata_->mutable_pages().end()) {
-      double page_rank = Rank(page->second, q);
-      if (page_rank != page->second.page_rank()) {
-        temporary_page_ranks_[page->first] = page_rank;
-      }
-      ++page;
-    }
-    UpdatePageRanks();
-  } while (!temporary_page_ranks_.empty());
-}
-
-double PageRanker::Rank(const ::util::Page& page, double q) const {
-  if(web_graph_size_ == 0) {
-    return page.page_rank();
+double PageRanker::Rank(unsigned page_id) {
+  if (web_graph_size_ == 0) {
+    return 1.0;
   }
-  auto inlink = page.inlinks().begin();
-  double E = q / web_graph_size_, page_rank = 0;
-  while (inlink != page.inlinks().end()) {
-    unsigned page_id = *inlink;
-    double L = ranking_metadata_->pages().at(page_id).outlinks().size();
-    page_rank += ranking_metadata_->pages().at(page_id).page_rank() / L;
+  auto inlink = inlink_graph_[page_id].begin();
+  double E = random_surfer_q_ / web_graph_size_, page_rank = 0;
+  while (inlink != inlink_graph_[page_id].end()) {
+    unsigned linked_page_id = *inlink;
+    double L = outlink_counts_[linked_page_id];
+    page_rank += page_ranks_[linked_page_id] / L;
     ++inlink;
   }
-  page_rank *= 1 - q;
+  page_rank *= (1 - random_surfer_q_);
   page_rank += E;
   return page_rank;
 }
 
-void PageRanker::UpdatePagesToFile() {
-  ranking_metadata_->UpdatePagesToFile();
+void PageRanker::TemporaryUpdate(unsigned page_id, double page_rank) {
+  if (page_ranks_[page_id] != page_rank) {
+    temporary_page_ranks_[page_id] = page_rank;
+  }
 }
 
-void PageRanker::UpdatePageRanks() {
+unsigned PageRanker::UpdatePageRanks() {
+  unsigned changed_page_ranks = 0;
   auto page_rank = temporary_page_ranks_.begin();
   while (page_rank != temporary_page_ranks_.end()) {
-    ranking_metadata_->mutable_pages()
-        .at(page_rank->first)
-        .mutable_page_rank() = page_rank->second;
+    changed_page_ranks++;
+    page_ranks_[page_rank->first] = page_rank->second;
     ++page_rank;
   }
-}
-
-void PageRanker::CalculateWebGraphSize() {
-  std::unordered_set<unsigned> nodes;
-  auto page = ranking_metadata_->pages().begin();
-  while (page != ranking_metadata_->pages().end()) {
-    auto link = page->second.inlinks().begin();
-    while (link != page->second.inlinks().end()) {
-      nodes.insert(*link);
-      ++link;
-    }
-    link = page->second.outlinks().begin();
-    while (link != page->second.outlinks().end()) {
-      nodes.insert(*link);
-      ++link;
-    }
-    ++page;
-  }
-  web_graph_size_ = nodes.size();
+  temporary_page_ranks_.clear();
+  return changed_page_ranks;
 }
 
 }  // namespace ranking

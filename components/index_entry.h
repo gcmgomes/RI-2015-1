@@ -21,6 +21,10 @@ class IndexEntry {
     return term_;
   };
 
+  unsigned total_frequency() const {
+    return total_frequency_;
+  }
+
   const std::map<unsigned, std::vector<unsigned> >& occurrences() const {
     return occurrences_;
   };

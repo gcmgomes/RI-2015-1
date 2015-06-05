@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "../util/page.h"
 #include "ranking_metadata.h"
@@ -13,42 +14,52 @@ namespace ranking {
 
 class PageRanker {
  public:
-  // Takes ownership of |ranking_metadata|
-  PageRanker(RankingMetadata* ranking_metadata);
+  PageRanker(unsigned web_graph_size, double random_surfer_q);
 
-  // Build |ranking_metadata_| using |metadata_file_path|.
-  PageRanker(const std::string& metadata_file_path);
+  unsigned& mutable_web_graph_size() {
+    return web_graph_size_;
+  }
 
-  // Initializes the needed data.
-  void Init();
+  std::unordered_map<unsigned, double>& mutable_page_ranks() {
+    return page_ranks_;
+  }
 
-  // Calculates the |page_rank| score of each object stored in
-  // |ranking_metadata_|. |q| is the normalization constant between random
-  // surfing and link surfing.
-  void Rank(double q);
+  std::unordered_map<unsigned, unsigned>& mutable_outlink_counts() {
+    return outlink_counts_;
+  }
 
-  // Returns the page rank score of |page|.
-  double Rank(const ::util::Page& page, double q) const;
+  std::unordered_map<unsigned, std::unordered_set<unsigned>>& mutable_inlink_graph() {
+    return inlink_graph_;
+  }
 
-  // Writes the pages in |ranking_metadata_| back to their file.
-  void UpdatePagesToFile();
+  // Returns the page rank score of position |page_id| of |inlink_graph_|.
+  double Rank(unsigned page_id);
+
+  // Updates |temporary_page_ranks_|.
+  void TemporaryUpdate(unsigned page_id, double page_rank);
+
+  // Transfers the page ranks from |temporary_page_ranks_| to |page_ranks|.
+  // Returns true if any changes were made, false otherwise.
+  unsigned UpdatePageRanks();
 
  private:
-
-  // Updates the |page_rank_| fields of every page stored in |ranking_metadata|.
-  void UpdatePageRanks();
-
-  // Calculates |web_graph_size_|.
-  void CalculateWebGraphSize();
-
   // The number of nodes in the graph.
   unsigned web_graph_size_;
 
-  // Metadata associated with the collection.
-  std::unique_ptr<RankingMetadata> ranking_metadata_;
+  // The random surfer parameter.
+  double random_surfer_q_;
 
-  // Stores the temporary page rank values of the pages in ;
+  // The mapping page_id -> page_rank of the current scores.
+  std::unordered_map<unsigned, double> page_ranks_;
+
+  // The mapping page_id -> page_rank of the temporary scores.
   std::unordered_map<unsigned, double> temporary_page_ranks_;
+
+  // The mapping page_id -> #outlinks.
+  std::unordered_map<unsigned, unsigned> outlink_counts_;
+
+  // The graph representing the inlink relationships.
+  std::unordered_map<unsigned, std::unordered_set<unsigned>> inlink_graph_;
 };
 
 }  // namespace ranking

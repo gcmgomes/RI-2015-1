@@ -43,7 +43,7 @@ class Indexer {
 
   // Get the next entry in |input_file| and stores it at |entry|. Returns true
   // if successful, or false if it can't be retrieved.
-  static bool GetNextEntry(std::unique_ptr<std::fstream>& input_file,
+  static bool GetNextEntry(const std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry);
 
  private:
@@ -55,7 +55,7 @@ class Indexer {
   void WritePositions(std::unique_ptr<std::fstream>& file);
 
   // Loads the position vector from |file| and stores it in |positions|.
-  static void GetPositionVector(std::unique_ptr<std::fstream>& file,
+  static void GetPositionVector(const std::unique_ptr<std::fstream>& file,
                                 std::vector<unsigned>& positions);
 
   // Updates the |document_count| of the current index entry.

@@ -1,52 +1,71 @@
-#include "../retriever.h"
-#include "../../ranking/ranker.h"
-#include "../../util/page.h"
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <set>
 #include <memory>
 #include <unordered_set>
+#include "../retriever.h"
+#include "../../ranking/ranker.h"
+#include "../../ranking/query_evaluator.h"
+#include "../../util/page.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
-  if (argc < 5) {
-    cout << argv[0] << " [vocabulary file] [binary index file] [binary anchor index file] [rankng metadata file] <ranking model (0)> <beta weighting(0.5)>" << endl;
+  if (argc < 7) {
+    cout << argv[0] << " [vocabulary file] [binary index file] [binary anchor "
+                       "index file] [rankng metadata file] [relevants "
+                       "directory] [relevants index] <ranking model (0)> <beta "
+                       "weighting(0.5)>" << endl;
     return 0;
   }
 
   double beta = 0.5;
   unsigned model = 0;
-  if(argc > 5) {
-    sscanf(argv[5], "%u", &model);
+  if (argc > 7) {
+    sscanf(argv[7], "%u", &model);
   }
 
-  if(argc > 6) {
-    sscanf(argv[6], "%lf", &beta);
+  if (argc > 8) {
+    sscanf(argv[8], "%lf", &beta);
   }
 
-  components::Retriever* retriever = new components::Retriever(argv[2], argv[3], argv[4]);
-  retriever->Init(argv[1], false);
+  int query_count = 1;
+  components::Retriever* retriever =
+      new components::Retriever(argv[2], argv[3], argv[4]);
+  ranking::QueryEvaluator evaluator(argv[5], argv[6]);
+  evaluator.ReadRelevants();
+  retriever->Init(argv[1]);
   ranking::Ranker ranker(retriever, beta);
 
-  while(true) {
+  while (true) {
     std::string query = "";
-    cout << "Waiting query" << endl;
+    cerr << "\rQuery: " << query_count;
+    fflush(stderr);
     std::getline(cin, query);
-    if(cin.eof()) {
+    if (cin.eof()) {
       break;
     }
-    std::vector<::util::Page> answers;
+    std::unordered_set<unsigned> answers;
+    std::vector<::util::Page> ranked_answers;
     ranker.retriever()->Retrieve(query, answers);
-    ranker.Rank(query, answers, model);
-    auto i = answers.begin();
-    while(i != answers.end()) {
-      cout << i->ToString() << endl;
+    ranker.Rank(query, answers, ranked_answers,
+                ranking::Ranker::RankingModel(model));
+    unsigned i = 0;
+    std::unordered_set<std::string> known_documents;
+    while (i < ranked_answers.size()) {
+      if (!known_documents.count(ranked_answers[i].url())) {
+        cout << query_count << ' ' << 0 << ' ' << ranked_answers[i].url() << ' '
+             << 1 << ' ' << ranked_answers[i].score() << ' ' << 0 << endl;
+        known_documents.insert(ranked_answers[i].url());
+      }
       ++i;
     }
-    cout << endl;
+//    vector<double> precisions, recalls;
+//    evaluator.ComputeMetrics(query, ranked_answers, precisions, recalls);
+    query_count++;
   }
-  cout << "Goodbye" << endl;
+  cerr << endl << "Goodbye" << endl;
 }

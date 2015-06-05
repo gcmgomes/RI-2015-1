@@ -31,7 +31,7 @@ VocabularyEntry Vocabulary::GetMappedValue(const std::string& key) const {
   return vocabulary_.at(key);
 }
 
-void Vocabulary::Dump(const std::string& file_path) {
+void Vocabulary::Dump(const std::string& file_path) const {
   std::ofstream output_file;
   output_file.open(file_path.c_str(), std::ofstream::out);
   auto i = vocabulary_.begin();
@@ -61,8 +61,6 @@ void Vocabulary::Load(const std::string& file_path,
     this->Insert(key, std::make_pair(position, anchor_position));
   }
   using namespace std;
-  cout << "Bridge: " << bridge.size() << endl;
-  cout << "Vocab:  " << vocabulary_.size() << endl;
 }
 
 void Vocabulary::InsertStopWord(const std::string& key) {

@@ -145,9 +145,10 @@ void FileManager::ConvertBinToText(const std::string& binary_input_file_path,
                           std::fstream::binary | std::fstream::in);
   std::fstream output_file(text_output_file_path.c_str(), std::fstream::out);
 
-  std::string str = GetTupleText(&input_file);
+  std::string str = GetTupleText(&input_file), prev = "";
   while (!input_file.eof() && input_file.peek() != EOF) {
     output_file << str << std::endl;
+    prev = str;
     str = GetTupleText(&input_file);
   }
 

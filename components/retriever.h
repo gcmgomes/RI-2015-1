@@ -18,17 +18,19 @@ class Retriever {
             const std::string& anchor_index_file_path,
             const std::string& ranking_metadata_file_path);
 
-  const std::unique_ptr<::parsing::Vocabulary>& vocabulary() {
+  const std::unique_ptr<::parsing::Vocabulary>& vocabulary() const {
     return vocabulary_;
   }
 
-  // Properly initializes |vocabulary_|. Builds the weights of each page if
-  // |init_weights| is set.
-  void Init(const std::string& vocabulary_file_path, bool init_weights);
+  // Properly initializes |vocabulary_|. If |remap_entries| is true, replace the
+  // entries in |vocabulary| by their positions in the indexes.
+  void Init(const std::string& vocabulary_file_path, bool remap_entries = false);
 
   // Retrieve all the documents associated with |query|. A |query| is a sequence
-  // of terms without any logical operators.
-  void Retrieve(const std::string& query, std::vector<::util::Page>& answers);
+  // of terms without any logical operators. The resulting page ids are stored
+  // in |answers|
+  void Retrieve(const std::string& query,
+                std::unordered_set<unsigned>& answers);
 
   // Utility to get the tokens out of a |query|.
   static void GetToken(const std::string& query, unsigned& pos,
@@ -38,15 +40,23 @@ class Retriever {
   bool GetIndexEntry(const std::string& term, IndexEntry& entry,
                      bool anchor_index);
 
-  // Writes the augmented pages back to where they came from.
-  void UpdatePagesToFile();
+  // Returns the pair (length, anchor_length) of the page object indexed by
+  // |page_id|.
+  std::pair<double, double> PageLengths(unsigned page_id);
+
+  // Returns the amount of pages present in the collection.
+  unsigned PageCount() const;
+
+  // Loads the ::util::Page object indexed by |page_id|.
+  std::unique_ptr<::util::Page> LoadPage(unsigned page_id);
+
+  // Extracts the id and url from the pages mapped by |scored_answers| and
+  // stores them in |scored_pages|.
+  void ExtractAnswerPages(
+      const std::unordered_map<unsigned, double>& scored_answers,
+      std::vector<::util::Page>& scored_pages);
 
  private:
-  // Convert the values in |doc_set| in meaningful Page objects stored in
-  // |page_set|.
-  void ConvertIntoPages(const std::unordered_set<unsigned>& doc_set,
-                        std::vector<::util::Page>& page_set);
-
   // The mapping needed to retrieve documents from the index.
   std::unique_ptr<::parsing::Vocabulary> vocabulary_;
 

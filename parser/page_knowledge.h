@@ -9,10 +9,15 @@ namespace parsing {
 
 struct PageInformation {
   PageInformation();
-  PageInformation(unsigned id_, unsigned anchor_position_);
+  PageInformation(unsigned id_, bool already_read_, unsigned anchor_position_);
 
   unsigned id;
+  bool already_read;
   unsigned anchor_position;
+
+  bool read() const {
+    return already_read;
+  }
 };
 
 class PageKnowledge {
@@ -26,6 +31,9 @@ class PageKnowledge {
   std::unordered_map<std::string, PageInformation>& known_pages() {
     return known_pages_;
   }
+
+  // Returns true if the page pointed by |page_url| has already been read.
+  bool AlreadyRead(const std::string& page_url) const;
 
  private:
   // Mapping url -> unsigned. The key should be normalized according to

@@ -3,92 +3,124 @@
 
 namespace ranking {
 
-void Ranker::Rank(std::string query, std::vector<::util::Page>& answers,
-                  unsigned model) {
-  unsigned i = 0;
-  ::util::Page query_page;
-  MakePage(query, query_page);
-  while (i < answers.size()) {
-    double score = 0, s1 = 0, s2 = 0;
-    if (!(model % 5)) {
-      score = VectorScore(query_page, answers[i], false);
-    }
-    if (model % 5 == 1) {
-      score = VectorScore(query_page, answers[i], true);
-    }
-    if (model % 5 == 3) {
-      s1 = VectorScore(query_page, answers[i], false);
-      s2 = VectorScore(query_page, answers[i], true);
-      score = beta_ * s1 + (1-beta_) * s2;
-    }
-    answers[i].score_ = score;
+static void BalanceScores(
+    double beta, const std::unordered_set<unsigned> answers,
+    std::unordered_map<unsigned, double>& aux_scores,
+    std::unordered_map<unsigned, double>& scores) {
+  auto i = answers.begin();
+  while (i != answers.end()) {
+    double val = aux_scores[*i];
+    scores[*i] = beta * scores[*i] + (1 - beta) * val;
     ++i;
   }
+}
+
+void Ranker::Rank(const std::string& query,
+                  const std::unordered_set<unsigned>& answers,
+                  std::vector<::util::Page>& ranked_answers,
+                  RankingModel model) {
   ::util::PageHash page_sorter;
-  std::sort(answers.begin(), answers.end(), page_sorter);
+  std::unordered_map<unsigned, double> scores, aux_scores;
+  switch (model) {
+    case PURE_VECTOR:
+      VectorScore(query, answers, scores, false);
+      break;
+    case ANCHOR_VECTOR:
+      VectorScore(query, answers, scores, true);
+      break;
+    case PAGE_RANK:
+      PageRankScore(answers, scores);
+      break;
+    case PURE_PLUS_ANCHOR_VECTOR:
+      VectorScore(query, answers, scores, false);
+      VectorScore(query, answers, aux_scores, true);
+      BalanceScores(beta_, answers, aux_scores, scores);
+      break;
+    case PURE_VECTOR_PLUS_PAGE_RANK:
+      VectorScore(query, answers, scores, false);
+      PageRankScore(answers, aux_scores);
+      BalanceScores(beta_, answers, aux_scores, scores);
+      break;
+  }
+  retriever_->ExtractAnswerPages(scores, ranked_answers);
+  std::sort(ranked_answers.begin(), ranked_answers.end(), page_sorter);
 }
 
-void Ranker::GetFrequencies(
-    const std::string& query,
-    std::unordered_map<unsigned, double>& weights, bool anchor_weighting) const {
-  weights.clear();
+static void ExtractQueryText(std::string query,
+                             std::unordered_set<std::string>& text) {
   unsigned pos = 0;
+  std::transform(query.begin(), query.end(), query.begin(), ::tolower);
   while (pos < query.size()) {
-    std::string token = "";
+    std::string token;
     components::Retriever::GetToken(query, pos, token);
-    if (!token.empty() && retriever_->vocabulary()->Check(token)) {
-      ::parsing::VocabularyEntry entry = retriever_->vocabulary()->GetMappedValue(token);
-      unsigned weight_id = entry.first;
-      if(anchor_weighting) {
-        weight_id = entry.second;
-      }
-      weights[weight_id]++;
-    }
+    text.insert(token);
   }
 }
 
-void Ranker::MakePage(const std::string& query, ::util::Page& page) const {
-  std::unordered_map<unsigned, double> weights;
-  GetFrequencies(query, weights, false);
-  page.weights_ = weights;
-  GetFrequencies(query, weights, true);
-  page.anchor_weights_ = weights;
-  page.CalculateLength();
+void Ranker::VectorScore(const std::string& query,
+                         const std::unordered_set<unsigned>& answers,
+                         std::unordered_map<unsigned, double>& scores,
+                         bool anchor_weighting) {
+  double N = retriever_->PageCount();
+
+  std::unordered_set<std::string> query_text;
+  ExtractQueryText(query, query_text);
+  double query_length = 0;
+
+  auto term = query_text.begin();
+  while (term != query_text.end()) {
+    ::components::IndexEntry entry;
+    if(!retriever_->GetIndexEntry(*term, entry, anchor_weighting)) {
+      ++term;
+      continue;
+    }
+    double term_df = entry.occurrences().size();
+    double query_term_score = log10(N / term_df);
+    query_length += query_term_score * query_term_score;
+
+    auto page_id = answers.begin();
+    while (page_id != answers.end()) {
+      if (entry.occurrences().count(*page_id)) {
+        double tf = entry.occurrences().at(*page_id).size();
+        double doc_term_score = (1 + log10(tf)) * log10(N / term_df);
+        scores[*page_id] += query_term_score * doc_term_score;
+      }
+      ++page_id;
+    }
+    ++term;
+  }
+
+  query_length = sqrt(query_length);
+  auto page_id = scores.begin();
+  while (page_id != scores.end()) {
+    double length_prod = 0;
+
+    if (anchor_weighting) {
+      length_prod =
+          query_length * retriever_->PageLengths(page_id->first).second;
+    } else {
+      length_prod =
+          query_length * retriever_->PageLengths(page_id->first).first;
+    }
+
+    if (length_prod <= 0) {
+      page_id->second = 0;
+    } else {
+      //page_id->second /= length_prod;
+    }
+
+    ++page_id;
+  }
 }
 
-double Ranker::VectorScore(const ::util::Page& query,
-                           const ::util::Page& document,
-                           bool anchor_weighting) {
-  double dot_prod = 0, length_prod = 0;
-  auto weights = query.weights();
-  if(anchor_weighting) {
-    weights = query.anchor_weights();
+void Ranker::PageRankScore(const std::unordered_set<unsigned>& answers,
+                           std::unordered_map<unsigned, double>& scores) {
+  auto page_id = answers.begin();
+  while (page_id != answers.end()) {
+    auto page = retriever_->LoadPage(*page_id);
+    scores[*page_id] = page->page_rank();
+    ++page_id;
   }
-  auto i = weights.begin();
-  while (i != weights.end()) {
-    if(anchor_weighting) {
-      if(document.anchor_weights().count(i->first)) {
-        std::cout << i->first << ' ' << i->second << ' ' << document.anchor_weights().at(i->first);
-        dot_prod += i->second * document.anchor_weights().at(i->first);
-      }
-    }
-    else {
-      if(document.weights().count(i->first)) {
-        dot_prod += i->second * document.weights().at(i->first);
-      }
-    }
-    ++i;
-  }
-  length_prod = query.length() * document.length();
-
-  if(anchor_weighting) {
-    length_prod = query.anchor_length() * document.anchor_length();
-  }
-
-  if(length_prod <= 0) {
-    return 0;
-  }
-  return dot_prod / length_prod;
 }
 
 }  // namespace ranking

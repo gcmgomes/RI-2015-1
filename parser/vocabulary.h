@@ -31,7 +31,7 @@ class Vocabulary {
   VocabularyEntry GetMappedValue(const std::string& key) const;
 
   // Writes the vocabulary to |file_path|.
-  void Dump(const std::string& file_path);
+  void Dump(const std::string& file_path) const;
 
   // Recovers the vocabulary written to |file_path| with Dump(). Uses
   // |bridge| to update the read values.

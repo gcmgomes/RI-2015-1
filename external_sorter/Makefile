@@ -1,6 +1,6 @@
 CC := g++
 BINFLAGS := -std=c++11 -Wall -O3
-CFLAGS := $(BINFLAGS) -c
+CFLAGS := $(BINFLAGS) -c -flto
 
 AR := ar
 ARFLAGS := rcs

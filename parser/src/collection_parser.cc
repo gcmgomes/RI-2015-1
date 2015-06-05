@@ -1,3 +1,7 @@
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <memory>
 #include "../page_knowledge.h"
 #include "../parser.h"
 #include "../vocabulary.h"
@@ -6,12 +10,55 @@
 #include "../../util/file_manager.h"
 #include "../ricp/src/Document.h"
 #include "../ricp/src/CollectionReader.h"
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <memory>
 
 using namespace std;
+
+bool stuff(string url) {
+  return url == "http://cartas.com.br/" ||
+         url == "http://www.juegarcasinos.com/pai-gow-poquer-internet.php" ||
+         url == "http://www.baixaki.com.br/jogos/" ||
+         url == "http://clubedepoquer.com/" ||
+         url == "http://www.mypoquerenlinea.com/17099.html" ||
+         url == "http://www.mypoquers.com/holdem-poquers-online.html" ||
+         url == "http://www.mypoquerenlinea.com/16195.html" ||
+         url == "http://www.ionlinepoquer.com/onlinepoker12.html" ||
+         url == "http://www.mypoquers.com/partypoquers-million.html" ||
+         url == "http://www.bestpoquerenlinea.com/04469.php" ||
+         url == "http://www.bestpoquerenlinea.com/11578.php";
+}
+
+void Parse(unsigned* total_documents, parsing::Parser* parser,
+           RICPNS::CollectionReader* reader) {
+  bool proceed = false;
+  RICPNS::Document doc;
+
+  proceed = reader->getNextDocument(doc);
+
+  while (proceed) {
+    std::string contents = doc.getText(), url = doc.getURL();
+    if (parser->Convert(contents) && !parser->AlreadyRead(url)) {
+      std::vector<std::pair<std::string, std::string>> referred_pages;
+      std::unique_ptr<util::Page> page =
+          std::move(parser->Parse(url, contents, referred_pages));
+      if (!(page->text().size() <= 1)) {
+        if (!parser->GenerateRankingData(page, referred_pages)) {
+          cout << endl;
+          std::cerr << "Something massively wrong happened, aborting"
+                    << std::endl;
+          return;
+        }
+      }
+    }
+    doc.clear();
+    proceed = reader->getNextDocument(doc);
+
+    if (*total_documents % 1000 == 0) {
+      cout << "\rProcessed Documents: " << *total_documents;
+      fflush(stdout);
+    }
+    (*total_documents)++;
+  }
+}
 
 int main(int argc, char** argv) {
   if (argc < 8) {
@@ -42,38 +89,12 @@ int main(int argc, char** argv) {
                          new ::parsing::PageKnowledge(index_file_path),
                          ranking_metadata.release());
 
-  RICPNS::CollectionReader* reader =
-      new RICPNS::CollectionReader(argv[1], argv[2]);
-  RICPNS::Document doc;
+  RICPNS::CollectionReader reader(argv[1], argv[2]);
 
   unsigned total_documents = 0;
-  while (reader->getNextDocument(doc)) {
-    std::string contents = doc.getText(), dummy = doc.getText(),
-                url = doc.getURL();
-    doc.clear();
-    if (!parser.Convert(contents)) {
-      continue;
-    }
-    std::vector<std::pair<std::string, std::string>> referred_pages;
-    std::unique_ptr<util::Page> page =
-        std::move(parser.Parse(url, contents, referred_pages));
-    if (page->text().size() <= 1) {
-      continue;
-    }
-    if (!parser.GenerateRankingData(page, referred_pages)) {
-      cout << endl;
-      std::cerr << "Something massively wrong happened, aborting" << std::endl;
-      return -1;
-    }
-    if (total_documents % 1000 == 0) {
-      cout << "\rProcessed Documents: " << total_documents;
-      fflush(stdout);
-    }
-    total_documents++;
-  }
+  Parse(&total_documents, &parser, &reader);
+
   cout << "\rProcessed Documents: " << total_documents;
-  fflush(stdout);
   cout << endl;
   parser.DumpVocabulary(argv[4]);
-  delete reader;
 }

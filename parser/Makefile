@@ -1,6 +1,6 @@
 CC := g++
-BINFLAGS := -std=c++11 -Wall -g
-LINKFLAGS := -lz -lgumbo
+BINFLAGS := -std=c++11 -Wall -O3
+LINKFLAGS := -lz -lgumbo -flto
 CFLAGS := $(BINFLAGS) -c
 
 AR := ar
@@ -76,4 +76,4 @@ clean:
 	@rm -rf $(ROOT)/ricp/build/
 
 bin: libparser.a libvocabulary.a $(SRCPATH)/collection_parser.cc 
-	$(CC) $(BINFLAGS) $(SRCPATH)/collection_parser.cc $(RICPLIB) $(LIBPATH)/libparser.a $(LIBPATH)/libvocabulary.a $(LINKFLAGS) -o $(BINPATH)/collection_parser
+	$(CC) $(BINFLAGS) -liconv $(SRCPATH)/collection_parser.cc $(RICPLIB) $(LIBPATH)/libparser.a $(LIBPATH)/libvocabulary.a $(LINKFLAGS) -o $(BINPATH)/collection_parser

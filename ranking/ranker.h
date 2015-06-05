@@ -14,22 +14,28 @@ namespace ranking {
 class Ranker {
  public:
   // Takes ownership of |retriever|.
-  Ranker(::components::Retriever* retriever, double beta) : retriever_(retriever), beta_(beta){};
+  Ranker(::components::Retriever* retriever, double beta)
+      : retriever_(retriever), beta_(beta){};
 
   const std::unique_ptr<::components::Retriever>& retriever() const {
     return retriever_;
   }
 
+  // Mixed models are balanced as (beta * model_1) + (1-beta) * model_2.
+  // That is, higher values of beta are better for model_1.
+  enum RankingModel {
+    PURE_VECTOR = 0,
+    ANCHOR_VECTOR = 1,
+    PAGE_RANK = 2,
+    PURE_PLUS_ANCHOR_VECTOR = 3,
+    PURE_VECTOR_PLUS_PAGE_RANK = 4,
+  };
+
   // Ranks the collection's documents according to |query|, and stores the
   // sorted results in |answers|.
   // |model| controls which ranking function is used.
-  // 0 -> vector model, general text.
-  // 1 -> vector model, anchor text.
-  // 2 -> page rank.
-  // 3 -> 0 + 1.
-  // 4 -> vector + page rank.
-  void Rank(std::string query, std::vector<::util::Page>& answers,
-            unsigned model);
+  void Rank(const std::string& query, const std::unordered_set<unsigned>& answers,
+            std::vector<::util::Page>& ranked_answers, RankingModel model);
 
  private:
   // Get the |weights| associated with |query|.
@@ -37,17 +43,22 @@ class Ranker {
                       std::unordered_map<unsigned, double>& weights,
                       bool anchor_weighting) const;
 
-  // Make a |page| based on |query|. Primarily used in the vector model.
-  void MakePage(const std::string& query, ::util::Page& page) const;
+  // Produce a vectorial scoring for the pages referenced by |answers|, based on
+  // |query| and stores them in the mapping |scores|.
+  void VectorScore(const std::string& query,
+                   const std::unordered_set<unsigned>& answers,
+                   std::unordered_map<unsigned, double>& scores,
+                   bool anchor_weighting);
 
-  // Score |document| according to |query|, using the vector model.
-  double VectorScore(const ::util::Page& query, const ::util::Page& document, bool anchor_weighting);
+  // Produce a page rank scoring for the pages referenced by |answers|, based on
+  // |query| and stores them in the mapping |scores|.
+  void PageRankScore(const std::unordered_set<unsigned>& answers,
+                     std::unordered_map<unsigned, double>& scores);
 
   std::unique_ptr<::components::Retriever> retriever_;
 
-  // When using 2 or more ranking models (e.g. model = 3).
+  // Balancing constant when using 2 or more ranking models (e.g. model = 3).
   double beta_;
-
 };
 
 }  // namespace ranking

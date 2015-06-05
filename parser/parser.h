@@ -56,6 +56,9 @@ class Parser {
 
   void DumpVocabulary(const std::string& file_path);
 
+  // Returns true if the page pointed by |page_url| has already been read.
+  bool AlreadyRead(const std::string& page_url);
+
  private:
   std::unique_ptr<::util::FileManager> file_manager_;
 

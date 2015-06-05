@@ -4,9 +4,9 @@
 
 namespace parsing {
 
-PageInformation::PageInformation() : PageInformation(0,0){};
-PageInformation::PageInformation(unsigned id_, unsigned anchor_position_)
-    : id(id_), anchor_position(anchor_position_){};
+PageInformation::PageInformation() : PageInformation(0, false, 0){};
+PageInformation::PageInformation(unsigned id_, bool already_read_, unsigned anchor_position_)
+    : id(id_), already_read(already_read_), anchor_position(anchor_position_){};
 
 PageKnowledge::PageKnowledge(const std::string& acceptable_pages) {
   LoadPageKnowledge(acceptable_pages);
@@ -25,10 +25,21 @@ void PageKnowledge::LoadPageKnowledge(const std::string& acceptable_pages) {
     std::string str = "";
     std::getline(input_file, str, ' ');
     NormalizeUrl(str);
-    known_pages_[str] = PageInformation(i, 0);
+    if(!known_pages_.count(str)) {
+      known_pages_[str] = PageInformation(i, false, 0);
+      i++;
+    }
     std::getline(input_file, str);
-    i++;
   }
+}
+
+bool PageKnowledge::AlreadyRead(const std::string& page_url) const {
+  std::string url(page_url);
+  NormalizeUrl(url);
+  if(known_pages_.count(url)) {
+    return known_pages_.at(url).read();
+  }
+  return false;
 }
 
 }  // namespace parsing

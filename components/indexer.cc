@@ -155,12 +155,6 @@ void Indexer::WriteTuple(const util::Tuple* tuple,
 void Indexer::FinishIndex(std::unique_ptr<std::fstream>& file) {
   if (index_metadata_ != nullptr) {
     UpdateMetadata(file);
-    std::cout << "Immutable needed data:     "
-              << index_metadata_->immutable_size << std::endl;
-    std::cout << "Original Positions Size:   "
-              << index_metadata_->original_positions_size << std::endl;
-    std::cout << "Compressed Positions Size: "
-              << index_metadata_->compressed_positions_size << std::endl;
   }
 }
 
@@ -186,7 +180,7 @@ void Indexer::ConvertIndexToText(const std::string& binary_input_file_path,
   output_file->close();
 }
 
-void Indexer::GetPositionVector(std::unique_ptr<std::fstream>& file,
+void Indexer::GetPositionVector(const std::unique_ptr<std::fstream>& file,
                                 std::vector<unsigned>& positions) {
   positions.clear();
   int frequency = 0;
@@ -218,7 +212,7 @@ void Indexer::GetPositionVector(std::unique_ptr<std::fstream>& file,
   }
 }
 
-bool Indexer::GetNextEntry(std::unique_ptr<std::fstream>& input_file,
+bool Indexer::GetNextEntry(const std::unique_ptr<std::fstream>& input_file,
                            IndexEntry& entry) {
   if(input_file->eof() || input_file->peek() == EOF) {
     return false;

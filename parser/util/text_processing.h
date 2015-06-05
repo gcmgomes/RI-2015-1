@@ -5,7 +5,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <string>
-#include "htmlEntities.h"
+#include "iconv.hpp"
 
 namespace parsing {
 
@@ -14,53 +14,38 @@ bool is_unwanted_char(char c) {
   return !::isalnum(c) && c != ' ';
 }
 
-void ConvertToUtf8(std::string& document) {
-  char* buffer = new char[document.size() + 1];
-  decode_html_entities_utf8(buffer, document.c_str());
-  document = buffer;
-  delete[] buffer;
-}
-
-static void RemoveDiacriticsInternal(const char* src, char* dst, int idx) {
-  // "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
-  const char* tr =
-      "AAAAAAECEEEEIIIIDNOOOOOx0UUUUYPsaaaaaaeceeeeiiiiOnooooo/0uuuuypy";
-  while (*src != 0) {
-    uint8_t ch = *src;
-    if (ch == 0x0A) {
-      dst[idx++] = (char)' ';
-      ++src;
-      continue;
-    }
-    if (ch < 32 || (ch > 126 && ch < 192)) {
-      ++src;
-      continue;
-    }
-    if (ch >= 192) {
-      ch = tr[ch - 192];
-    }
-    dst[idx++] = (char)ch;
-    ++src;
+void ConvertToUtf8(const std::string& charset, std::string& text) {
+  if (charset == "utf-8") {
+    return;
   }
-  dst[idx] = (char)0;
+  iconvpp::converter to_utf8("UTF-8", charset.c_str(), true, 1000000);
+  std::string output;
+  to_utf8.convert(text, output);
+  text = output;
 }
 
 void RemoveDiacritics(std::string& text) {
-  const char* src = text.c_str();
-  char* tmp = new char[text.size() + 1];
-  RemoveDiacriticsInternal(src, tmp, 0);
-  text = tmp;
-  std::transform(text.begin(), text.end(), text.begin(), ::tolower);
-  delete[] tmp;
+  // "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåæçèéêëìíîïñòóôõöùúûüýÿ"
+  // "AAAAAAECEEEEIIIIDNOOOOOUUUUYaaaaaaeceeeeiiiinooooouuuuyy";
 }
 
 // Performs diacritical removal and useless character substitution.
 void TreatText(std::string& text) {
-  RemoveDiacritics(text);
-
-  // Replace useless characters with ' '. We can't outright remove, otherwise
-  // "a\nb" would become "ab", which we don't want.
-  std::replace_if(text.begin(), text.end(), is_unwanted_char, ' ');
+  iconvpp::converter to_ascii("ascii//translit", "UTF-8", true, 1000000);
+  std::string output;
+  to_ascii.convert(text, output);
+  text.clear();
+  unsigned i = 0;
+  while (i < output.size()) {
+    if (output[i] == '\'' || output[i] == '`' || output[i] == '^' ||
+        output[i] == '~') {
+    } else if (is_unwanted_char(output[i])) {
+      text += ' ';
+    } else {
+      text += std::tolower(output[i]);
+    }
+    i++;
+  }
 }
 
 }  // namespace parsing

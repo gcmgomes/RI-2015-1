@@ -1,6 +1,6 @@
 CC := g++
 BINFLAGS := -std=c++11 -Wall -O3
-CFLAGS := $(BINFLAGS) -c
+CFLAGS := $(BINFLAGS) -c -flto
 
 AR := ar
 ARFLAGS := rcs
@@ -41,7 +41,7 @@ dependencies:
 	cd $(PARSER) && $(MAKE) libvocabulary.a
 
 bin_dependencies:
-	cd $(RANKING) && $(MAKE) libranker.a && $(MAKE) libpageranker.a
+	cd $(RANKING) && $(MAKE) libranker.a && $(MAKE) libpageranker.a && $(MAKE) libqueryevaluator.a
 
 indexer.o: $(ROOT)/indexer.h $(ROOT)/indexer.cc
 	$(CC) $(CFLAGS) $(ROOT)/indexer.cc -o $(OBJPATH)/indexer.o
@@ -70,5 +70,5 @@ clean:
 
 bin: bin_dependencies libcompressor.a libretriever.a
 	$(CC) $(BINFLAGS) $(SRCPATH)/compressor.cc $(LIBPATH)/libcompressor.a -o $(BINPATH)/compressor
-	$(CC) $(BINFLAGS) $(SRCPATH)/retrieve_index.cc $(LIBPATH)/libretriever.a $(RANKING)/lib/libranker.a -o $(BINPATH)/retrieve_index
-	$(CC) $(BINFLAGS) $(SRCPATH)/preprocess_ranking_data.cc $(LIBPATH)/libretriever.a $(RANKING)/lib/libpageranker.a -o $(BINPATH)/preprocess_ranking_data
+	$(CC) $(BINFLAGS) $(SRCPATH)/retrieve_index.cc $(LIBPATH)/libretriever.a $(RANKING)/lib/libranker.a $(RANKING)/lib/libqueryevaluator.a -o $(BINPATH)/retrieve_index
+	$(CC) $(BINFLAGS) $(SRCPATH)/preprocess_vocabulary.cc $(LIBPATH)/libretriever.a -o $(BINPATH)/preprocess_vocabulary

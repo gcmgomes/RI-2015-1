@@ -22,9 +22,9 @@ Retriever::Retriever(const std::string& index_file_path,
 
 static void FillBridge(
     std::unique_ptr<std::fstream>& index_file,
-    std::unique_ptr<::ranking::RankingMetadata>& ranking_metadata,
     std::unordered_map<unsigned, ::parsing::VocabularyEntry>& bridge,
-    bool anchor_bridge, bool init_weights) {
+    bool anchor_bridge) {
+  unsigned read_entries = 0;
   // Passes through the index once to get information on every term.
   while (!index_file->eof() && index_file->peek() != EOF) {
     unsigned position_in_file = index_file->tellg();
@@ -33,14 +33,11 @@ static void FillBridge(
     if (!Indexer::GetNextEntry(index_file, entry)) {
       break;
     }
-
-    if (init_weights) {
-      // We have to put |position_in_file| instead of the |term_id| due to the
-      // vocabulary overwrite.
-      ranking_metadata->UpdatePagesWeights(position_in_file,
-                                           entry.occurrences(), anchor_bridge);
+    if (!(read_entries % 1000)) {
+      std::cout << "\rRemapped entries " << read_entries;
+      fflush(stdout);
     }
-
+    read_entries++;
     if (!anchor_bridge) {
       bridge[entry.term()].first = position_in_file;
     } else {
@@ -48,21 +45,23 @@ static void FillBridge(
     }
   }
 
+  std::cout << "\rRemapped entries " << read_entries << std::endl;
+  read_entries++;
   index_file->seekg(0, index_file->beg);
 }
 
-void Retriever::Init(const std::string& vocabulary_file_path, bool init_weights) {
-  ranking_metadata_->LoadPages();
+void Retriever::Init(const std::string& vocabulary_file_path,
+                     bool remap_entries) {
   std::unordered_map<unsigned, ::parsing::VocabularyEntry> bridge;
-  FillBridge(index_file_, ranking_metadata_, bridge, false, init_weights);
-  FillBridge(anchor_index_file_, ranking_metadata_, bridge, true, init_weights);
-
+  if (remap_entries) {
+    FillBridge(index_file_, bridge, false);
+    FillBridge(anchor_index_file_, bridge, true);
+  } else {
+    ranking_metadata_->LoadPages();
+  }
   // Initialize the vocabulary with just enough buckets to fit every term.
   vocabulary_.reset(new parsing::Vocabulary(bridge.size() + 1));
   vocabulary_->Load(vocabulary_file_path, bridge);
-
-  ranking_metadata_->CalculatePagesLengths();
-  ranking_metadata_->FixInlinks();
 }
 
 void Retriever::GetToken(const std::string& query, unsigned& pos,
@@ -73,10 +72,6 @@ void Retriever::GetToken(const std::string& query, unsigned& pos,
     pos++;
   }
   pos++;
-}
-
-void Retriever::UpdatePagesToFile() {
-  ranking_metadata_->UpdatePagesToFile();
 }
 
 static void ExtractDocuments(const IndexEntry& entry,
@@ -90,8 +85,8 @@ static void ExtractDocuments(const IndexEntry& entry,
   }
 }
 
-static void Intersect(std::unordered_set<unsigned>& small_set,
-                      const std::unordered_set<unsigned>& large_set) {
+static void Intersect(const std::unordered_set<unsigned>& large_set,
+                      std::unordered_set<unsigned>& small_set) {
   auto copy = small_set;
   auto i = copy.begin();
   while (i != copy.end()) {
@@ -113,8 +108,8 @@ static void MergeEntry(IndexEntry& anchor_entry, IndexEntry& real_entry) {
 }
 
 void Retriever::Retrieve(const std::string& query,
-                         std::vector<::util::Page>& answers) {
-  bool use_anchor_index = false;
+                         std::unordered_set<unsigned>& answers) {
+  bool use_anchor_index = true;
   answers.clear();
   unsigned pos = 0, min_pos = 0, min_size = 0;
   IndexEntry entry, anchor_entry;
@@ -124,8 +119,8 @@ void Retriever::Retrieve(const std::string& query,
     GetToken(query, pos, token);
 
     if (token.empty() ||
-        (!GetIndexEntry(token, entry, use_anchor_index) &&
-         !GetIndexEntry(token, anchor_entry, !use_anchor_index))) {
+        (!GetIndexEntry(token, entry, !use_anchor_index) &&
+         !GetIndexEntry(token, anchor_entry, use_anchor_index))) {
       continue;
     }
     tokens.push_back(token);
@@ -145,32 +140,18 @@ void Retriever::Retrieve(const std::string& query,
   }
   pos = 0;
   std::unordered_set<unsigned> small_set;
-  GetIndexEntry(tokens[min_pos], entry, use_anchor_index);
+  GetIndexEntry(tokens[min_pos], entry, !use_anchor_index);
   ExtractDocuments(entry, small_set);
-  std::unordered_map<unsigned, IndexEntry> entries;
   while (pos < tokens.size()) {
-    if (pos != min_pos) {
-      std::unordered_set<unsigned> current;
-      GetIndexEntry(tokens[pos], entry, use_anchor_index);
-      GetIndexEntry(tokens[pos], anchor_entry, !use_anchor_index);
-      MergeEntry(entry, anchor_entry);
-      ExtractDocuments(entry, current);
-      Intersect(small_set, current);
-      entries[entry.term()] = entry;
-    }
+    std::unordered_set<unsigned> current;
+    GetIndexEntry(tokens[pos], entry, !use_anchor_index);
+    GetIndexEntry(tokens[pos], anchor_entry, use_anchor_index);
+    MergeEntry(anchor_entry, entry);
+    ExtractDocuments(entry, current);
+    Intersect(current, small_set);
     pos++;
   }
-  ConvertIntoPages(small_set, answers);
-}
-
-void Retriever::ConvertIntoPages(const std::unordered_set<unsigned>& doc_set,
-                                 std::vector<::util::Page>& page_set) {
-  auto& pages = ranking_metadata_->mutable_pages();
-  auto i = doc_set.begin();
-  while (i != doc_set.end()) {
-    page_set.push_back(pages[*i]);
-    ++i;
-  }
+  answers = small_set;
 }
 
 bool Retriever::GetIndexEntry(const std::string& term, IndexEntry& entry,
@@ -187,6 +168,33 @@ bool Retriever::GetIndexEntry(const std::string& term, IndexEntry& entry,
     components::Indexer::GetNextEntry(anchor_index_file_, entry);
   }
   return true;
+}
+
+std::pair<double, double> Retriever::PageLengths(unsigned page_id) {
+  return ranking_metadata_->page_lengths().at(page_id);
+}
+
+unsigned Retriever::PageCount() const {
+  return ranking_metadata_->pages().size();
+}
+
+std::unique_ptr<::util::Page> Retriever::LoadPage(unsigned page_id) {
+  return ranking_metadata_->LoadPage(page_id);
+}
+
+void Retriever::ExtractAnswerPages(
+    const std::unordered_map<unsigned, double>& scored_answers,
+    std::vector<::util::Page>& scored_pages) {
+  scored_pages.clear();
+  auto page_id = scored_answers.begin();
+  while (scored_answers.end() != page_id) {
+    auto page = LoadPage(page_id->first);
+    ::util::Page p(page_id->first, page->url(), "", page->length(),
+                   page->anchor_length(), page->page_rank());
+    p.mutable_score() = page_id->second;
+    scored_pages.push_back(p);
+    ++page_id;
+  }
 }
 
 }  // namespace components
