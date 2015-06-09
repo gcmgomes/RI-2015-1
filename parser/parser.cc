@@ -142,6 +142,34 @@ static bool IsUndesiredHref(const std::string& href) {
          href.find("mailto") == 0;
 }
 
+// Extracts the title of the parsed document.
+static const char* GetTitle(const GumboNode* root) {
+  const GumboVector* root_children = &root->v.element.children;
+  GumboNode* head = NULL;
+  for (unsigned i = 0; i < root_children->length; ++i) {
+    GumboNode* child = (GumboNode*) root_children->data[i];
+    if (child->type == GUMBO_NODE_ELEMENT &&
+        child->v.element.tag == GUMBO_TAG_HEAD) {
+      head = child;
+      break;
+    }
+  }
+
+  GumboVector* head_children = &head->v.element.children;
+  for (unsigned i = 0; i < head_children->length; ++i) {
+    GumboNode* child = (GumboNode*)head_children->data[i];
+    if (child->type == GUMBO_NODE_ELEMENT &&
+        child->v.element.tag == GUMBO_TAG_TITLE) {
+      if (child->v.element.children.length != 1) {
+        return "<empty title>";
+      }
+      GumboNode* title_text = (GumboNode*)child->v.element.children.data[0];
+      return title_text->v.text.text;
+    }
+  }
+  return "<no title found>";
+}
+
 // Extract only the text from the tree rooted at |node|.
 // This method makes this library is Gumbo dependent.
 static void ExtractText(GumboNode* node, std::string& text) {
@@ -223,6 +251,11 @@ std::unique_ptr<::util::Page> Parser::Parse(
   page_knowledge_->known_pages()[page->url()].already_read = true;
 
   GumboOutput* output = gumbo_parse(converted_document.c_str());
+
+  // Get the page's title.
+  std::string title(GetTitle(output->root));
+  TreatTitle(title);
+  page->mutable_title() = title;
 
   // Get only the text from the document.
   std::string& text = page->mutable_text();

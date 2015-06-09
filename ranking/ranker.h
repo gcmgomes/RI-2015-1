@@ -34,8 +34,10 @@ class Ranker {
   // Ranks the collection's documents according to |query|, and stores the
   // sorted results in |answers|.
   // |model| controls which ranking function is used.
-  void Rank(const std::string& query, const std::unordered_set<unsigned>& answers,
-            std::vector<::util::Page>& ranked_answers, RankingModel model);
+  void Rank(const std::string& query,
+            const std::unordered_set<unsigned>& answers,
+            std::vector<::util::Page>& ranked_answers, RankingModel model,
+            double beta = -1, bool use_dl_norm = true);
 
  private:
   // Get the |weights| associated with |query|.
@@ -48,7 +50,7 @@ class Ranker {
   void VectorScore(const std::string& query,
                    const std::unordered_set<unsigned>& answers,
                    std::unordered_map<unsigned, double>& scores,
-                   bool anchor_weighting);
+                   bool anchor_weighting, bool use_dl_norm = true);
 
   // Produce a page rank scoring for the pages referenced by |answers|, based on
   // |query| and stores them in the mapping |scores|.

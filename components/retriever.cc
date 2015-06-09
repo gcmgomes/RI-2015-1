@@ -189,8 +189,8 @@ void Retriever::ExtractAnswerPages(
   auto page_id = scored_answers.begin();
   while (scored_answers.end() != page_id) {
     auto page = LoadPage(page_id->first);
-    ::util::Page p(page_id->first, page->url(), "", page->length(),
-                   page->anchor_length(), page->page_rank());
+    ::util::Page p(page_id->first, page->url(), page->title(), page->text(),
+                   page->length(), page->anchor_length(), page->page_rank());
     p.mutable_score() = page_id->second;
     scored_pages.push_back(p);
     ++page_id;

@@ -1,6 +1,6 @@
 CC := g++
 BINFLAGS := -std=c++11 -Wall -O3
-LINKFLAGS := -lz -lgumbo -flto
+LINKFLAGS := -lz -lgumbo -flto -lhtmlcxx
 CFLAGS := $(BINFLAGS) -c
 
 AR := ar

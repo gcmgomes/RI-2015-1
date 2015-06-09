@@ -1,5 +1,5 @@
 CC := g++
-BINFLAGS := -std=c++11 -Wall -O3
+BINFLAGS := -std=c++11 -Wall -O3 -lhtmlcxx
 CFLAGS := $(BINFLAGS) -c
 
 AR := ar
@@ -67,4 +67,4 @@ clean:
 bin: libfilemanager.a  libpageurl.a $(SRCPATH)/convert_to_human_readable.cc $(SRCPATH)/optimal_run_counter.cc
 	$(CC) $(BINFLAGS) $(SRCPATH)/optimal_run_counter.cc $(LIBPATH)/libfilemanager.a -o $(BINPATH)/optimal_run_counter
 	$(CC) $(BINFLAGS) $(SRCPATH)/convert_to_human_readable.cc $(LIBPATH)/libfilemanager.a -o $(BINPATH)/convert_to_human_readable
-	$(CC) $(BINFLAGS) $(SRCPATH)/page_url_test.cc $(LIBPATH)/libpageurl.a -o $(BINPATH)/page_url_test
+	$(CC) $(BINFLAGS) $(SRCPATH)/page_url_test.cc $(LIBPATH)/libpageurl.a -o $(BINPATH)/page_url_test -lhtmlcxx

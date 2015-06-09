@@ -12,6 +12,10 @@ COMPONENTS := $(ROOT)/components
 
 RANKING := $(ROOT)/ranking
 
+TREC := $(ROOT)/trec_eval
+
+SERVER := $(ROOT)/server
+
 make: clean deploy bin
 
 clean:
@@ -20,6 +24,8 @@ clean:
 	cd $(PARSER) && $(MAKE) clean;
 	cd $(COMPONENTS) && $(MAKE) clean;
 	cd $(RANKING) && $(MAKE) clean;
+	cd $(TREC) && $(MAKE) clean;
+	cd $(SERVER) && $(MAKE) clean;
 
 deploy:
 	@if [ ! -d $(DATA) ]; \
@@ -31,6 +37,7 @@ deploy:
 	cd $(PARSER) && $(MAKE) deploy;
 	cd $(COMPONENTS) && $(MAKE) deploy;
 	cd $(RANKING) && $(MAKE) deploy;
+	cd $(SERVER) && $(MAKE) deploy;
 
 bin:
 	cd $(UTIL) && $(MAKE) bin;
@@ -38,3 +45,5 @@ bin:
 	cd $(PARSER) && $(MAKE) bin;
 	cd $(COMPONENTS) && $(MAKE) bin;
 	cd $(RANKING) && $(MAKE) bin;
+	cd $(SERVER) && $(MAKE) bin;
+	cd $(TREC) && $(MAKE);

@@ -23,7 +23,7 @@ class RankingPreprocessor {
                       double random_surfer_q);
 
   // Properly preprocesses everything.
-  void Preprocess();
+  void Preprocess(bool only_page_rank = false);
 
   // Correctly fill the link information present in |input_metadata_|.
   void PreprocessLinks();

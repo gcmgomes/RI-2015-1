@@ -15,5 +15,5 @@ int main(int argc, char** argv) {
   unsigned tuple_count = 0, memory_limit = 0;
   sscanf(argv[2], "%u", &memory_limit);
   tuple_count = util::FileManager::CountTuples(argv[1]);
-  cout << util::Tuple::OptimalRunCount(memory_limit, tuple_count, 0) << endl;
+  cout << util::Tuple::OptimalRunCount(memory_limit, tuple_count, 1) << endl;
 }

@@ -4,8 +4,9 @@ ROOTDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 model=$1
 beta=$2
-output_file=$3
-eval_dir=$4
+use_dl_norm=$3
+output_file=$4
+eval_dir=$5
 
 names[0]="pure_vector"
 names[1]="anchor_vector"
@@ -27,7 +28,7 @@ rm -rf ${ROOTDIR}/${eval_dir}/${model_name}/beta_${beta}/*
 
 echo "Performing ranking"
 
-bash ${ROOTDIR}/querier.bash ${model} ${beta} < ${ROOTDIR}/queries.txt > ${ROOTDIR}/${eval_dir}/${model_name}/beta_${beta}/results.txt
+bash ${ROOTDIR}/querier.bash ${model} ${beta} ${use_dl_norm} < ${ROOTDIR}/queries.txt > ${ROOTDIR}/${eval_dir}/${model_name}/beta_${beta}/results.txt
 
 echo "Performing trec_eval"
 ${ROOTDIR}/trec_eval/trec_eval ${ROOTDIR}/ranking/judgement.txt ${ROOTDIR}/${eval_dir}/${model_name}/beta_${beta}/results.txt -q > ${ROOTDIR}/${eval_dir}/${model_name}/beta_${beta}/detailed_evaluation.txt

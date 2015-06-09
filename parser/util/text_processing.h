@@ -29,6 +29,14 @@ void RemoveDiacritics(std::string& text) {
   // "AAAAAAECEEEEIIIIDNOOOOOUUUUYaaaaaaeceeeeiiiinooooouuuuyy";
 }
 
+// Performs some lightweight nicening on a pages |title|.
+void TreatTitle(std::string& title) {
+  iconvpp::converter to_ascii("ascii", "UTF-8", true, 1000000);
+  std::string output;
+  to_ascii.convert(title, output);
+  title = output;
+}
+
 // Performs diacritical removal and useless character substitution.
 void TreatText(std::string& text) {
   iconvpp::converter to_ascii("ascii//translit", "UTF-8", true, 1000000);

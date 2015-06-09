@@ -15,9 +15,14 @@ Page::Page(unsigned page_id, const std::string& url, const std::string& text,
 
 Page::Page(unsigned page_id, const std::string& url, const std::string& text,
            double length, double anchor_length, double page_rank)
-    : page_id_(page_id), page_url_(url), text_(text), length_(length),
-      anchor_length_(anchor_length), page_rank_(page_rank), score_(0),
-      weights_(std::unordered_map<unsigned, double>()),
+    : Page(page_id, url, "", text, length, anchor_length, page_rank){};
+
+Page::Page(unsigned page_id, const std::string& url, const std::string& title,
+           const std::string& text, double length, double anchor_length,
+           double page_rank)
+    : page_id_(page_id), page_url_(url), title_(title), text_(text),
+      length_(length), anchor_length_(anchor_length), page_rank_(page_rank),
+      score_(0), weights_(std::unordered_map<unsigned, double>()),
       anchor_weights_(std::unordered_map<unsigned, double>()),
       inlinks_(std::unordered_set<unsigned>()),
       outlinks_(std::unordered_set<unsigned>()){};
@@ -81,6 +86,7 @@ std::string Page::GetNextTokenFromText(unsigned& starting_position) const {
 
 std::string Page::ToString() const {
   std::string str = "", url(page_url_.url());
+  url.resize(30);
   char i[128];
   sprintf(i, "%u ", page_id_);
   str += i;
@@ -96,6 +102,24 @@ std::string Page::ToString() const {
   str += i;
   return str;
 }
+
+std::string Page::ToResultString() const {
+  std::string str = "", url(page_url_.url());
+  char i[128];
+  str += "<a href=\"http://www.";
+  str += url + "\">";
+  if (title_ == "<no title found>" || title_ == "<no title found>") {
+    str += "Sem titulo</a>";
+  } else {
+    str += title_ + "</a>";
+  }
+  sprintf(i, " - Score: %lf<br />\n", score_);
+  str += i;
+  str += "<span style=\"color:#66cc33;\">http://www.";
+  str += url + "</span><br />";
+  str += text_ + "<br />";
+  return str;
+};
 
 std::string Page::ToDebugString() const {
   std::string str = "", url(page_url_.url());

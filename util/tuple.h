@@ -23,11 +23,12 @@ struct Tuple {
 
   // Returns the optimal number of runs with the given |memory_limit| and
   // |total_tuples| that will be sorted.
-  static unsigned OptimalRunCount(unsigned memory_limit, unsigned total_tuples, bool verbose = 0);
+  static unsigned long long OptimalRunCount(unsigned long long memory_limit,
+                                            unsigned long long total_tuples,
+                                            bool verbose = 0);
 
-      // Returns true iff |this| is strictly smaller then |b|.
-      bool
-      operator<(const Tuple& b) const;
+  // Returns true iff |this| is strictly smaller then |b|.
+  bool operator<(const Tuple& b) const;
   bool operator<(const Tuple& b);
 
   std::string ToString() const;

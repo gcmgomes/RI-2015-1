@@ -18,12 +18,21 @@ int main(int argc, char** argv) {
     cout << argv[0] << " [vocabulary file] [binary index file] [binary anchor "
                        "index file] [rankng metadata file] [relevants "
                        "directory] [relevants index] <ranking model (0)> <beta "
-                       "weighting(0.5)>" << endl;
+                       "weighting(0.5)> <use dl norm (1)>" << endl;
     return 0;
   }
 
   double beta = 0.5;
   unsigned model = 0;
+  bool use_dl_norm = true;
+  if (argc > 9) {
+    sscanf(argv[9], "%u", &model);
+    if (!model) {
+      std::cerr << "not using dl norm" << std::endl;
+      use_dl_norm = false;
+    }
+    model = 0;
+  }
   if (argc > 7) {
     sscanf(argv[7], "%u", &model);
   }
@@ -52,7 +61,7 @@ int main(int argc, char** argv) {
     std::vector<::util::Page> ranked_answers;
     ranker.retriever()->Retrieve(query, answers);
     ranker.Rank(query, answers, ranked_answers,
-                ranking::Ranker::RankingModel(model));
+                ranking::Ranker::RankingModel(model), beta, use_dl_norm);
     unsigned i = 0;
     std::unordered_set<std::string> known_documents;
     while (i < ranked_answers.size()) {
@@ -63,8 +72,8 @@ int main(int argc, char** argv) {
       }
       ++i;
     }
-//    vector<double> precisions, recalls;
-//    evaluator.ComputeMetrics(query, ranked_answers, precisions, recalls);
+    //    vector<double> precisions, recalls;
+    //    evaluator.ComputeMetrics(query, ranked_answers, precisions, recalls);
     query_count++;
   }
   cerr << endl << "Goodbye" << endl;

@@ -24,12 +24,26 @@ void RankingMetadata::WritePage(const std::unique_ptr<::util::Page>& page) {
   metadata_file_.write(reinterpret_cast<const char*>(&(page->page_id_)),
                        sizeof(unsigned));
 
+  unsigned size = page->url().size(),
+           text_size = std::min( (unsigned) 256, (unsigned)page->text().size());
   // Write the amount of bytes needed to store the url.
-  unsigned size = page->url().size();
   metadata_file_.write(reinterpret_cast<const char*>(&size), sizeof(unsigned));
 
   // Write the url itself.
   metadata_file_.write(page->url().c_str(), page->url().size());
+
+  // Write the amount of bytes needed to store the title.
+  size = page->title().size();
+  metadata_file_.write(reinterpret_cast<const char*>(&size), sizeof(unsigned));
+
+  // Write the title itself.
+  metadata_file_.write(page->title().c_str(), page->title().size());
+
+  // Write the amount of bytes needed to store the text.
+  metadata_file_.write(reinterpret_cast<const char*>(&text_size), sizeof(unsigned));
+
+  // Write the text itself.
+  metadata_file_.write(page->text().c_str(), text_size);
 
   // Write the document length.
   metadata_file_.write(reinterpret_cast<const char*>(&(page->length_)),
@@ -99,7 +113,7 @@ bool RankingMetadata::eof() {
 std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
   unsigned size = 0, page_id = 0;
   double length = 0, anchor_length, page_rank = 0;
-  std::string url = "";
+  std::string url = "", text = "", title;
 
   // Retrieve the |page_id_| identifier.
   metadata_file_.read(reinterpret_cast<char*>(&(page_id)), sizeof(unsigned));
@@ -111,6 +125,20 @@ std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
   url.resize(size);
   metadata_file_.read(reinterpret_cast<char*>(&url[0]), size);
 
+  // Retrieve the byte count of the saved title.
+  metadata_file_.read(reinterpret_cast<char*>(&size), sizeof(unsigned));
+
+  // Retrieve the title itself.
+  title.resize(size);
+  metadata_file_.read(reinterpret_cast<char*>(&title[0]), size);
+
+  // Retrieve the byte count of the saved text.
+  metadata_file_.read(reinterpret_cast<char*>(&size), sizeof(unsigned));
+
+  // Retrieve the text itself.
+  text.resize(size);
+  metadata_file_.read(reinterpret_cast<char*>(&text[0]), size);
+
   // Retrieve the length.
   metadata_file_.read(reinterpret_cast<char*>(&length), sizeof(double));
 
@@ -120,8 +148,8 @@ std::unique_ptr<::util::Page> RankingMetadata::LoadPage() {
   // Retrieve the page_rank.
   metadata_file_.read(reinterpret_cast<char*>(&page_rank), sizeof(double));
 
-  std::unique_ptr<::util::Page> page(new ::util::Page(
-      page_id, url, std::string(), length, anchor_length, page_rank));
+  std::unique_ptr<::util::Page> page(
+      new ::util::Page(page_id, url, title, text, length, anchor_length, page_rank));
 
   bool is_anchor_weighting = false;
   do {

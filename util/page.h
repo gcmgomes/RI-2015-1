@@ -46,6 +46,10 @@ class Page {
   Page(unsigned page_id, const std::string& url, const std::string& text,
        double length, double anchor_length, double page_rank);
 
+  Page(unsigned page_id, const std::string& url, const std::string& title,
+       const std::string& text, double length, double anchor_length,
+       double page_rank);
+
   Page(unsigned page_id, const std::string& url, const std::string& text);
 
   unsigned page_id() const {
@@ -58,6 +62,14 @@ class Page {
 
   const std::string& url() const {
     return page_url_.url();
+  }
+
+  const std::string& title() const {
+    return title_;
+  }
+
+  std::string& mutable_title() {
+    return title_;
   }
 
   const std::string& text() const {
@@ -122,6 +134,8 @@ class Page {
 
   std::string ToString() const;
 
+  std::string ToResultString() const;
+
   std::string ToDebugString() const;
 
   // Returns the next token starting the search at |starting_position|, or the
@@ -146,6 +160,9 @@ class Page {
 
   // Object's website.
   PageUrl page_url_;
+
+  // The page's title.
+  std::string title_;
 
   // Clean text. Consisting only of letters, numbers and whitespaces. No
   // diacritics allowed.

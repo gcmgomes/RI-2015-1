@@ -3,10 +3,39 @@
 
 namespace ranking {
 
-static void BalanceScores(
-    double beta, const std::unordered_set<unsigned> answers,
-    std::unordered_map<unsigned, double>& aux_scores,
-    std::unordered_map<unsigned, double>& scores) {
+static void NormalizeScores(std::unordered_map<unsigned, double>& scores) {
+  auto i = scores.begin();
+  double min = 0, max = 0;
+  while(i != scores.end()) {
+    if(i == scores.begin()) {
+      min = i->second;
+      max = i->second;
+    }
+    else {
+      min = std::min(i->second, min);
+      max = std::max(i->second, max);
+    }
+    ++i;
+  }
+  i = scores.begin();
+  if(max != min) {
+    max -= min;
+  }
+  else {
+    max = 1;
+  }
+  while(i != scores.end()) {
+    i->second = (i->second - min) / max;
+    ++i;  
+  }
+} 
+
+static void BalanceScores(double beta,
+                          const std::unordered_set<unsigned> answers,
+                          std::unordered_map<unsigned, double>& aux_scores,
+                          std::unordered_map<unsigned, double>& scores) {
+  NormalizeScores(scores);
+  NormalizeScores(aux_scores);
   auto i = answers.begin();
   while (i != answers.end()) {
     double val = aux_scores[*i];
@@ -17,29 +46,37 @@ static void BalanceScores(
 
 void Ranker::Rank(const std::string& query,
                   const std::unordered_set<unsigned>& answers,
-                  std::vector<::util::Page>& ranked_answers,
-                  RankingModel model) {
+                  std::vector<::util::Page>& ranked_answers, RankingModel model,
+                  double beta, bool use_dl_norm) {
   ::util::PageHash page_sorter;
   std::unordered_map<unsigned, double> scores, aux_scores;
   switch (model) {
     case PURE_VECTOR:
-      VectorScore(query, answers, scores, false);
+      VectorScore(query, answers, scores, false, use_dl_norm);
       break;
     case ANCHOR_VECTOR:
-      VectorScore(query, answers, scores, true);
+      VectorScore(query, answers, scores, true, use_dl_norm);
       break;
     case PAGE_RANK:
       PageRankScore(answers, scores);
       break;
     case PURE_PLUS_ANCHOR_VECTOR:
-      VectorScore(query, answers, scores, false);
-      VectorScore(query, answers, aux_scores, true);
-      BalanceScores(beta_, answers, aux_scores, scores);
+      VectorScore(query, answers, scores, false, use_dl_norm);
+      VectorScore(query, answers, aux_scores, true, use_dl_norm);
+      if (beta < 0) {
+        BalanceScores(beta_, answers, aux_scores, scores);
+      } else {
+        BalanceScores(beta, answers, aux_scores, scores);
+      }
       break;
     case PURE_VECTOR_PLUS_PAGE_RANK:
-      VectorScore(query, answers, scores, false);
+      VectorScore(query, answers, scores, false, use_dl_norm);
       PageRankScore(answers, aux_scores);
-      BalanceScores(beta_, answers, aux_scores, scores);
+      if (beta < 0) {
+        BalanceScores(beta_, answers, aux_scores, scores);
+      } else {
+        BalanceScores(beta, answers, aux_scores, scores);
+      }
       break;
   }
   retriever_->ExtractAnswerPages(scores, ranked_answers);
@@ -60,7 +97,7 @@ static void ExtractQueryText(std::string query,
 void Ranker::VectorScore(const std::string& query,
                          const std::unordered_set<unsigned>& answers,
                          std::unordered_map<unsigned, double>& scores,
-                         bool anchor_weighting) {
+                         bool anchor_weighting, bool use_dl_norm) {
   double N = retriever_->PageCount();
 
   std::unordered_set<std::string> query_text;
@@ -70,7 +107,7 @@ void Ranker::VectorScore(const std::string& query,
   auto term = query_text.begin();
   while (term != query_text.end()) {
     ::components::IndexEntry entry;
-    if(!retriever_->GetIndexEntry(*term, entry, anchor_weighting)) {
+    if (!retriever_->GetIndexEntry(*term, entry, anchor_weighting)) {
       ++term;
       continue;
     }
@@ -103,10 +140,12 @@ void Ranker::VectorScore(const std::string& query,
           query_length * retriever_->PageLengths(page_id->first).first;
     }
 
-    if (length_prod <= 0) {
-      page_id->second = 0;
-    } else {
-      //page_id->second /= length_prod;
+    if (use_dl_norm) {
+      if (length_prod <= 0) {
+        page_id->second = 0;
+      } else {
+        page_id->second /= length_prod;
+      }
     }
 
     ++page_id;

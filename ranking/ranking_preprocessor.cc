@@ -38,13 +38,14 @@ static void FillLink(
   }
 }
 
-void RankingPreprocessor::Preprocess() {
+void RankingPreprocessor::Preprocess(bool only_page_rank)  {
   PreprocessLinks();
 
   PreprocessPageRanks();
 
-  vector_preprocessor_->Preprocess();
-
+  if(!only_page_rank) {
+    vector_preprocessor_->Preprocess();
+  }
   UpdatePages();
 }
 
