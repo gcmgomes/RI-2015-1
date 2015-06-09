@@ -23,23 +23,15 @@ make
 
 e todos os arquivos necessários serão automaticamente gerados.
 
+Caso a compilação falhe com o erro sobre o linking da biblioteca iconv,
+basta remover a flag -liconv, que o mesmo funcionará.
+
 //--------------------------
 Execução
 --------------------------//
 
-Para poder gerar o índice invertido, basta executar o comando
-
-bash index.bash [caminho da coleção] [índice da coleção]
-
-Arquivos de índice, tuplas e vocabulario serão gerados no diretório data/.
-
-Para poder realizar consultas ao índice, basta executar o comando
-
-bash query\_processor.bash
-
-Após carregadas as informações necessárias em memória, ele estará pronto
-para consultas. Quando não se deseja mais realizar nenhuma consulta, transmita
-o fim de arquivo (EOF) para o programa (Ctrl-D em ambientes linux).
-
-Para os demais binários (disponíveis em \*/bin/), uma execução sem parâmetros
-indica quais são os argumentos necessários para seu correto funcionamento.
+Os binários necessários estão localizados nos diversos diretórios */bin, sendo que
+cada um deles, quando executado sem parâmetros, imprime as informações de uso do mesmo.
+Para realizar a execução de pipelines, basta olhar as primeiras linhas dos arquivos *.bash.
+Esses são responsáveis por executar todas as tarefas complexas, como indexação, parsing,
+preprocessamentos, execução de consultas e inicialização da interface web de consultas.
